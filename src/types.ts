@@ -81,3 +81,11 @@ export interface PaginationParams {
   size: number;
   sort?: string;
 }
+
+/**
+ * API error response structure returned by the backend.
+ */
+export interface ApiErrorResponse {
+  error: string;
+  message: string;
+}

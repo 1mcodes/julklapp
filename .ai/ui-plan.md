@@ -87,7 +87,7 @@ Global UI patterns:
   - Mirror Created Draws behavior for consistency.
 
 ### Draw Details (Author)
-- **Path**: `/dashboard/draws/{drawId}`
+- **Path**: `/dashboard/draws/{drawId}/participants`
 - **Purpose**: Show participants of a specific draw.
 - **Key Information**:
   - Breadcrumb: Dashboard ▶ Created Draws ▶ {Draw Name}

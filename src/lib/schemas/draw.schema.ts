@@ -27,3 +27,16 @@ export const createDrawSchema = z.object({
  * Inferred type from the Zod schema for type safety.
  */
 export type CreateDrawInput = z.infer<typeof createDrawSchema>;
+
+/**
+ * Schema for validating drawId path parameter.
+ * Ensures the drawId is a valid UUID format.
+ */
+export const drawIdParamSchema = z.object({
+  drawId: z.string().uuid("Invalid draw ID format"),
+});
+
+/**
+ * Inferred type for drawId parameter validation.
+ */
+export type DrawIdParam = z.infer<typeof drawIdParamSchema>;

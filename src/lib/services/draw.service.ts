@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "../../db/supabase.client";
-import type { CreateDrawCommand, DrawDTO } from "../../types";
+import type { CreateDrawCommand, DrawDTO, ParticipantDTO } from "../../types";
 import { LoggerService } from "./logger.service";
 
 /**
@@ -83,5 +83,69 @@ export class DrawService {
    */
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Checks if a draw exists by ID.
+   *
+   * @param drawId - The UUID of the draw
+   * @returns true if draw exists, false otherwise
+   */
+  async drawExists(drawId: string): Promise<boolean> {
+    const { data, error } = await this.supabase.from("draws").select("id").eq("id", drawId).single();
+
+    return !error && data !== null;
+  }
+
+  /**
+   * Retrieves a draw by ID if the user is the author.
+   *
+   * @param drawId - The UUID of the draw
+   * @param userId - The authenticated user's ID
+   * @returns The draw if found and user is author, null otherwise
+   */
+  async getDrawByIdForAuthor(drawId: string, userId: string): Promise<DrawDTO | null> {
+    const { data, error } = await this.supabase
+      .from("draws")
+      .select("id, name, created_at, author_id")
+      .eq("id", drawId)
+      .single();
+
+    if (error || !data) {
+      return null;
+    }
+
+    // Check if user is the author
+    if (data.author_id !== userId) {
+      return null;
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      created_at: data.created_at,
+    };
+  }
+
+  /**
+   * Retrieves all participants for a given draw.
+   *
+   * @param drawId - The UUID of the draw
+   * @returns Array of ParticipantDTO
+   * @throws Error if database query fails
+   */
+  async getParticipantsByDrawId(drawId: string): Promise<ParticipantDTO[]> {
+    const { data, error } = await this.supabase
+      .from("draw_participants")
+      .select("id, name, surname, email, gift_preferences")
+      .eq("draw_id", drawId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      await LoggerService.error("Failed to fetch participants", { drawId, error });
+      throw new Error("Failed to fetch participants");
+    }
+
+    return data ?? [];
   }
 }
