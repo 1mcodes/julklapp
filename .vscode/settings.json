@@ -1,6 +1,6 @@
 {
   "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "deno.enablePaths": [
     "supabase/functions"
@@ -31,5 +31,6 @@
     "typescript",
     "typescriptreact",
     "astro"
-  ]
+  ],
+  "postman.settings.dotenv-detection-notification-visibility": false
 }

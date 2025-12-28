@@ -27,7 +27,3 @@ export const createDrawSchema = z.object({
  * Inferred type from the Zod schema for type safety.
  */
 export type CreateDrawInput = z.infer<typeof createDrawSchema>;
-
-
-
-

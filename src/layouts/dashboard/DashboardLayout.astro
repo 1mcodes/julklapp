@@ -1,0 +1,25 @@
+---
+import Layout from "../Layout.astro";
+import { Toaster } from "../../components/ui/sonner";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Dashboard" } = Astro.props;
+---
+
+<Layout title={title}>
+  <div class="min-h-screen bg-gray-50">
+    <!-- Tab Navigation would go here -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+      <slot />
+    </div>
+  </div>
+
+  <Toaster client:load />
+</Layout>
+
+<style>
+  /* Dashboard specific styles can go here */
+</style>

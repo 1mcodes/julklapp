@@ -1,0 +1,15 @@
+---
+import DashboardLayout from "../../layouts/dashboard/DashboardLayout.astro";
+import DrawForm from "../../components/CreateDraw/DrawForm.tsx";
+---
+
+<DashboardLayout title="Create New Draw" activeTab="create">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Create New Draw</h1>
+      <p class="mt-2 text-gray-600">Set up your draw by entering a name and adding participants.</p>
+    </div>
+
+    <DrawForm client:load />
+  </div>
+</DashboardLayout>

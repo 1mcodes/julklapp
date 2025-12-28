@@ -32,6 +32,9 @@ describe("DrawService", () => {
     };
 
     drawService = new DrawService(mockSupabase as unknown as SupabaseClient);
+
+    // Mock the delay function to be instantaneous for faster tests
+    vi.spyOn(drawService as any, "delay").mockResolvedValue(undefined);
   });
 
   describe("createDraw", () => {
@@ -195,7 +198,7 @@ describe("DrawService", () => {
       });
       expect(attemptCount).toBe(10);
       expect(mockDelete).not.toHaveBeenCalled();
-    }, 60000); // Increase timeout for this test due to retries
+    });
 
     it("should cleanup and throw error after 10 failed participant insertion attempts", async () => {
       const mockDrawId = "draw-456";
@@ -245,6 +248,6 @@ describe("DrawService", () => {
       expect(mockParticipantsInsert).toHaveBeenCalledTimes(10);
       expect(mockDelete).toHaveBeenCalled();
       expect(mockEq).toHaveBeenCalledWith("id", mockDrawId);
-    }, 60000); // Increase timeout for this test due to retries
+    });
   });
 });
