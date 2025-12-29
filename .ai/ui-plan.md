@@ -92,6 +92,8 @@ Global UI patterns:
 - **Key Information**:
   - Breadcrumb: Dashboard ▶ Created Draws ▶ {Draw Name}
   - Table: Name, Surname, Email
+  - Button for executing matching algorithm
+  - Info badge if draw has already matching algorithm executed successfully.
 - **Key Components**:
   - `Breadcrumb`
   - `ParticipantsTable`

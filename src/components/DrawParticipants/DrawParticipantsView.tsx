@@ -2,6 +2,8 @@ import React from "react";
 import { Loader2 } from "lucide-react";
 import { useDrawParticipants } from "../../hooks/useDrawParticipants";
 import { Breadcrumb } from "./Breadcrumb";
+import MatchStatusBadge from "./MatchStatusBadge";
+import MatchButton from "./MatchButton";
 
 /**
  * Props for DrawParticipantsView component.
@@ -29,13 +31,25 @@ const DrawParticipantsView: React.FC<DrawParticipantsViewProps> = ({ drawId, dra
       <Breadcrumb items={breadcrumbItems} />
 
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">{drawName || "Draw Participants"}</h1>
-        <p className="mt-2 text-gray-600">View all participants in this draw.</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{drawName || "Draw Participants"}</h1>
+            <p className="mt-2 text-gray-600">View all participants in this draw.</p>
+          </div>
+          {state.hasMatches && !state.isLoading && <MatchStatusBadge />}
+        </div>
       </div>
+
+      {/* Run Matching Algorithm Button */}
+      {!state.hasMatches && !state.isLoading && !state.error && (
+        <div className="flex justify-start">
+          <MatchButton onClick={actions.executeMatching} isLoading={state.isLoading} isMatching={state.isMatching} />
+        </div>
+      )}
 
       {/* Loading State */}
       {state.isLoading && (
-        <div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-12" role="status" aria-live="polite">
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" aria-hidden="true" />
           <span className="sr-only">Loading participants...</span>
         </div>
@@ -43,13 +57,14 @@ const DrawParticipantsView: React.FC<DrawParticipantsViewProps> = ({ drawId, dra
 
       {/* Error State */}
       {!state.isLoading && state.error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6" role="alert" aria-live="assertive">
           <p className="font-medium text-red-800">Error loading participants</p>
           <p className="mt-1 text-sm text-red-700">{state.error.message}</p>
           {(state.httpStatus === 500 || state.httpStatus === null) && (
             <button
               onClick={actions.refetch}
-              className="mt-4 rounded-md bg-red-100 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              className="mt-4 rounded-md bg-red-100 px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+              aria-label="Retry loading participants"
             >
               Try Again
             </button>
@@ -60,14 +75,25 @@ const DrawParticipantsView: React.FC<DrawParticipantsViewProps> = ({ drawId, dra
       {/* Success State - Participants Table */}
       {!state.isLoading && !state.error && (
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200" aria-label="Participants list">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                >
+                  Name
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                >
                   Surname
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+                >
                   Email
                 </th>
               </tr>

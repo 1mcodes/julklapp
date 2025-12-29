@@ -32,6 +32,14 @@ export type ParticipantDTO = Pick<
 >;
 
 /**
+ * Response DTO for participants endpoint with match status.
+ */
+export interface ParticipantsWithMetadataDTO {
+  participants: ParticipantDTO[];
+  has_matches: boolean;
+}
+
+/**
  * Generic message response DTO.
  */
 export interface MessageDTO {

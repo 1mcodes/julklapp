@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 
 import { DrawService } from "../../../../lib/services/draw.service";
+import { MatchingService } from "../../../../lib/services/matching.service";
 import { LoggerService } from "../../../../lib/services/logger.service";
 import { drawIdParamSchema } from "../../../../lib/schemas/draw.schema";
 
@@ -8,15 +9,19 @@ export const prerender = false;
 
 /**
  * GET /api/draws/{drawId}/participants
- * Retrieves all participants for a specific draw.
+ * Retrieves all participants for a specific draw along with match status.
  *
  * Requires authentication. Only the draw author can access this endpoint.
  *
  * Path Parameters:
  * - drawId: UUID of the draw
  *
+ * Response:
+ * - participants: Array of ParticipantDTO
+ * - has_matches: Boolean indicating if matches exist for this draw
+ *
  * Responses:
- * - 200 OK: Array of ParticipantDTO
+ * - 200 OK: Object with participants array and has_matches boolean
  * - 400 Bad Request: Invalid drawId format
  * - 401 Unauthorized: Missing or invalid authentication
  * - 403 Forbidden: User is not the draw author
@@ -89,16 +94,27 @@ export const GET: APIRoute = async ({ params, locals }) => {
     // Step 3: Fetch participants
     const participants = await drawService.getParticipantsByDrawId(drawId);
 
+    // Step 4: Check if matches exist for this draw
+    const matchingService = new MatchingService(locals.supabase);
+    const hasMatches = await matchingService.matchesExist(drawId);
+
     await LoggerService.info("Draw participants retrieved", {
       drawId,
       participantCount: participants.length,
+      hasMatches,
     });
 
-    // Step 4: Return success response
-    return new Response(JSON.stringify(participants), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    // Step 5: Return success response with participants and match status
+    return new Response(
+      JSON.stringify({
+        participants,
+        has_matches: hasMatches,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     await LoggerService.error("Error fetching draw participants", {
       error: error instanceof Error ? error.message : String(error),

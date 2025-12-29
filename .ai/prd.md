@@ -70,7 +70,7 @@ Out of scope:
 
 - ID: US-005
   Title: Perform matching algorithm
-  Description: As a system, I need to generate one distinct match per participant and prevent self-matching so that assignments are fair.
+  Description: As a draw created, I want to generate one distinct match per participant and prevent self-matching so that assignments are fair.
   Acceptance Criteria:
   - Given N participants, when the draw runs, then each participant receives exactly one unique match and no one is matched to themselves.
 

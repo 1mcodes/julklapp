@@ -1,14 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
-import type { ParticipantDTO, ApiErrorResponse } from "../types";
+import { toast } from "sonner";
+import type { ParticipantDTO, ParticipantsWithMetadataDTO, ApiErrorResponse, MessageDTO } from "../types";
 
 /**
- * State for the draw participants view.
+ * State for the draw participants view with matching capabilities.
  */
 export interface DrawParticipantsState {
   participants: ParticipantDTO[];
   isLoading: boolean;
   error: ApiErrorResponse | null;
   httpStatus: number | null;
+  hasMatches: boolean;
+  isMatching: boolean;
+  matchingError: ApiErrorResponse | null;
 }
 
 /**
@@ -18,6 +22,7 @@ export interface UseDrawParticipantsReturn {
   state: DrawParticipantsState;
   actions: {
     refetch: () => Promise<void>;
+    executeMatching: () => Promise<void>;
   };
 }
 
@@ -33,6 +38,9 @@ export function useDrawParticipants(drawId: string): UseDrawParticipantsReturn {
     isLoading: true,
     error: null,
     httpStatus: null,
+    hasMatches: false,
+    isMatching: false,
+    matchingError: null,
   });
 
   const fetchParticipants = useCallback(async () => {
@@ -58,26 +66,30 @@ export function useDrawParticipants(drawId: string): UseDrawParticipantsReturn {
           };
         }
 
-        setState({
+        setState((prev) => ({
+          ...prev,
           participants: [],
           isLoading: false,
           error: errorData,
           httpStatus: response.status,
-        });
+        }));
         return;
       }
 
-      const participants: ParticipantDTO[] = await response.json();
+      const data: ParticipantsWithMetadataDTO = await response.json();
 
-      setState({
-        participants,
+      setState((prev) => ({
+        ...prev,
+        participants: data.participants,
         isLoading: false,
         error: null,
         httpStatus: response.status,
-      });
-    } catch (error) {
+        hasMatches: data.has_matches,
+      }));
+    } catch {
       // Network error or other fetch failure
-      setState({
+      setState((prev) => ({
+        ...prev,
         participants: [],
         isLoading: false,
         error: {
@@ -85,7 +97,7 @@ export function useDrawParticipants(drawId: string): UseDrawParticipantsReturn {
           message: "Unable to connect. Please check your internet connection and try again.",
         },
         httpStatus: null,
-      });
+      }));
     }
   }, [drawId]);
 
@@ -93,10 +105,72 @@ export function useDrawParticipants(drawId: string): UseDrawParticipantsReturn {
     fetchParticipants();
   }, [fetchParticipants]);
 
+  const executeMatching = useCallback(async () => {
+    setState((prev) => ({
+      ...prev,
+      isMatching: true,
+      matchingError: null,
+    }));
+
+    try {
+      const response = await fetch(`/api/draws/${drawId}/match`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        let errorData: ApiErrorResponse;
+
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = {
+            error: "Unknown Error",
+            message: "An unexpected error occurred",
+          };
+        }
+
+        setState((prev) => ({
+          ...prev,
+          isMatching: false,
+          matchingError: errorData,
+          // If error is "already matched", update hasMatches to true
+          hasMatches: errorData.message.includes("already been generated") ? true : prev.hasMatches,
+        }));
+
+        toast.error(errorData.message);
+        return;
+      }
+
+      const result: MessageDTO = await response.json();
+
+      setState((prev) => ({
+        ...prev,
+        isMatching: false,
+        hasMatches: true,
+        matchingError: null,
+      }));
+
+      toast.success(result.message);
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        isMatching: false,
+        matchingError: {
+          error: "Network Error",
+          message: "Unable to connect. Please check your internet connection.",
+        },
+      }));
+
+      toast.error("Network error occurred");
+    }
+  }, [drawId]);
+
   return {
     state,
     actions: {
       refetch: fetchParticipants,
+      executeMatching,
     },
   };
 }
