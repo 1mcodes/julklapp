@@ -20,35 +20,32 @@ export const prerender = false;
  */
 export const GET: APIRoute = async ({ locals }) => {
   try {
-    // TODO: Replace with actual authenticated user once auth is implemented
-    const mockUserId = "00000000-0000-0000-0000-000000000000";
+    // Step 1: Get authenticated user (middleware ensures user is authenticated)
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
 
-    // Step 1: Verify authentication (mocked for development)
-    // const {
-    //   data: { user },
-    //   error: authError,
-    // } = await locals.supabase.auth.getUser();
+    if (authError || !user) {
+      await LoggerService.info("Unauthorized list draws request", {
+        authError: authError?.message,
+      });
 
-    // if (authError || !user) {
-    //   await LoggerService.info("Unauthorized list draws request", {
-    //     authError: authError?.message,
-    //   });
-
-    //   return new Response(
-    //     JSON.stringify({
-    //       error: "Unauthorized",
-    //       message: "Authentication required",
-    //     }),
-    //     {
-    //       status: 401,
-    //       headers: { "Content-Type": "application/json" },
-    //     }
-    //   );
-    // }
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          message: "Authentication required",
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
 
     // Step 2: Fetch draws using service
     const drawService = new DrawService(locals.supabase);
-    const draws = await drawService.getDrawsByAuthor(mockUserId);
+    const draws = await drawService.getDrawsByAuthor(user.id);
 
     // Step 3: Return success response
     return new Response(JSON.stringify(draws), {
@@ -95,11 +92,30 @@ export const GET: APIRoute = async ({ locals }) => {
  */
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    // TODO: Implement proper authentication when ready
-    // For now, using mock user ID
-    const mockUserId = "00000000-0000-0000-0000-000000000000";
+    // Step 1: Get authenticated user (middleware ensures user is authenticated)
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
 
-    // Step 1: Parse and validate request body
+    if (authError || !user) {
+      await LoggerService.info("Unauthorized create draw request", {
+        authError: authError?.message,
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          message: "Authentication required",
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Step 2: Parse and validate request body
     let body: unknown;
     try {
       body = await request.json();
@@ -141,14 +157,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // Step 2: Create command and call service
+    // Step 3: Create command and call service
     const command: CreateDrawCommand = {
       name: validationResult.data.name,
       participants: validationResult.data.participants,
     };
 
     const drawService = new DrawService(locals.supabase);
-    const draw = await drawService.createDraw(command, mockUserId);
+    const draw = await drawService.createDraw(command, user.id);
 
     await LoggerService.info("Draw created successfully", {
       drawId: draw.id,
@@ -156,7 +172,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       participantCount: command.participants.length,
     });
 
-    // Step 3: Return success response
+    // Step 4: Return success response
     return new Response(JSON.stringify(draw), {
       status: 201,
       headers: {
@@ -164,7 +180,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       },
     });
   } catch (error) {
-    // Step 4: Handle unexpected errors
+    // Step 5: Handle unexpected errors
     await LoggerService.error("Error creating draw", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

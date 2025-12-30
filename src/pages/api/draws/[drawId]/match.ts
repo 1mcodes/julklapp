@@ -30,13 +30,14 @@ const paramsSchema = z.object({
  * - Operation is idempotent (rejects if matches already exist)
  *
  * Authorization:
- * - TODO: Authentication and authorization are currently MOCKED for development
- * - Will require authentication when auth is implemented
- * - Will verify that only the draw author can trigger matching
+ * - Requires authentication (protected by middleware)
+ * - Only the draw author can trigger matching
  *
  * Responses:
  * - 200 OK: Matches created successfully
  * - 400 Bad Request: Invalid input, matches exist, or insufficient participants
+ * - 401 Unauthorized: Missing or invalid authentication
+ * - 403 Forbidden: User is not the draw author
  * - 404 Not Found: Draw not found
  * - 500 Internal Server Error: Matching or provisioning failed
  */
@@ -59,29 +60,25 @@ export const POST: APIRoute = async ({ params, locals }) => {
 
     const { drawId } = validationResult.data;
 
-    // TODO: Implement proper authentication when ready
-    // For now, using mock user ID
-    const mockUserId = "00000000-0000-0000-0000-000000000000";
+    // Step 2: Get authenticated user (middleware ensures user is authenticated)
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
 
-    // Step 2: Get authenticated user (MOCKED)
-    // const {
-    //   data: { user },
-    //   error: authError,
-    // } = await locals.supabase.auth.getUser();
+    if (authError || !user) {
+      await LoggerService.info("Unauthenticated match request", { drawId });
 
-    // if (authError || !user) {
-    //   await LoggerService.info("Unauthenticated match request", { drawId });
+      const errorResponse: ApiErrorResponse = {
+        error: "Unauthorized",
+        message: "Authentication required",
+      };
 
-    //   const errorResponse: ApiErrorResponse = {
-    //     error: "Unauthorized",
-    //     message: "Authentication required",
-    //   };
-
-    //   return new Response(JSON.stringify(errorResponse), {
-    //     status: 401,
-    //     headers: { "Content-Type": "application/json" },
-    //   });
-    // }
+      return new Response(JSON.stringify(errorResponse), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     // Step 3: Fetch draw and verify existence
     const { data: draw, error: drawError } = await locals.supabase
@@ -91,7 +88,7 @@ export const POST: APIRoute = async ({ params, locals }) => {
       .single();
 
     if (drawError || !draw) {
-      await LoggerService.info("Draw not found", { drawId, userId: mockUserId });
+      await LoggerService.info("Draw not found", { drawId, userId: user.id });
 
       const errorResponse: ApiErrorResponse = {
         error: "Not Found",
@@ -104,24 +101,24 @@ export const POST: APIRoute = async ({ params, locals }) => {
       });
     }
 
-    // Step 4: Verify authorization (user must be draw author) - DISABLED FOR NOW
-    // if (draw.author_id !== mockUserId) {
-    //   await LoggerService.warn("Unauthorized match attempt", {
-    //     drawId,
-    //     userId: mockUserId,
-    //     authorId: draw.author_id,
-    //   });
+    // Step 4: Verify authorization (user must be draw author)
+    if (draw.author_id !== user.id) {
+      await LoggerService.warn("Unauthorized match attempt", {
+        drawId,
+        userId: user.id,
+        authorId: draw.author_id,
+      });
 
-    //   const errorResponse: ApiErrorResponse = {
-    //     error: "Forbidden",
-    //     message: "Only the draw author can generate matches",
-    //   };
+      const errorResponse: ApiErrorResponse = {
+        error: "Forbidden",
+        message: "Only the draw author can generate matches",
+      };
 
-    //   return new Response(JSON.stringify(errorResponse), {
-    //     status: 403,
-    //     headers: { "Content-Type": "application/json" },
-    //   });
-    // }
+      return new Response(JSON.stringify(errorResponse), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     // Step 5: Check if matches already exist (idempotency)
     const matchingService = new MatchingService(locals.supabase);
@@ -166,7 +163,7 @@ export const POST: APIRoute = async ({ params, locals }) => {
     await LoggerService.info("Matches created successfully", {
       drawId,
       drawName: draw.name,
-      userId: mockUserId,
+      userId: user.id,
     });
 
     const successResponse: MessageDTO = {

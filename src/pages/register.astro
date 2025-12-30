@@ -5,11 +5,13 @@ import { Toaster } from "sonner";
 
 export const prerender = false;
 
-// TODO: Add server-side session check when auth is implemented
-// const { data: { session } } = await Astro.locals.supabase.auth.getSession();
-// if (session) {
-//   return Astro.redirect('/dashboard/created');
-// }
+// Server-side session check - redirect authenticated users to dashboard
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
+if (session) {
+  return Astro.redirect("/dashboard/created");
+}
 ---
 
 <Layout title="Register - JulklApp">
@@ -32,4 +34,3 @@ export const prerender = false;
   {/* Toast notifications */}
   <Toaster client:load position="top-center" />
 </Layout>
-

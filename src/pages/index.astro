@@ -1,6 +1,16 @@
 ---
 import Welcome from "../components/Welcome.astro";
 import Layout from "../layouts/Layout.astro";
+
+export const prerender = false;
+
+// Redirect authenticated users to dashboard
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
+if (session) {
+  return Astro.redirect("/dashboard/created");
+}
 ---
 
 <Layout>

@@ -28,6 +28,7 @@ To avoid confusion throughout this document, the following terms are defined:
 **Location**: `src/pages/login.astro`
 
 **Visual Design**:
+
 - Centered card layout with gradient background (consistent with Welcome page aesthetic)
 - Application name at the top (JulklApp)
 - Email and password input fields
@@ -38,6 +39,7 @@ To avoid confusion throughout this document, the following terms are defined:
 - Toast notifications for success/error states
 
 **Astro Page Responsibilities**:
+
 - Server-side session check: redirect authenticated users to `/dashboard/created`
 - Accept `redirect` query parameter to return users after auth (e.g., `/login?redirect=/dashboard/draws/123`)
 - Handle POST form submission server-side for progressive enhancement
@@ -47,9 +49,10 @@ To avoid confusion throughout this document, the following terms are defined:
 - Handle CSRF protection via form tokens
 
 **Client Component**: `LoginForm` (React)
+
 - **Props**: `redirectUrl?: string`
 - **State**: `{ email, password, isSubmitting, errors }`
-- **Validation**: 
+- **Validation**:
   - Email: required, valid email format
   - Password: required, min 6 characters
 - **Error Messages**:
@@ -65,6 +68,7 @@ To avoid confusion throughout this document, the following terms are defined:
   - Auto-focus on email field on mount
 
 **Key Scenarios**:
+
 1. **First-time author login**: Redirect to `/dashboard/created`
 2. **Participant login**: Check if password is set; if not, redirect to `/set-password`; otherwise redirect to `/dashboard/created`
 3. **Invalid credentials**: Display error message with retry option
@@ -80,6 +84,7 @@ To avoid confusion throughout this document, the following terms are defined:
 **Location**: `src/pages/register.astro`
 
 **Visual Design**:
+
 - Similar layout to login page for consistency
 - Fields: Email, Password, Confirm Password
 - Password strength indicator
@@ -88,6 +93,7 @@ To avoid confusion throughout this document, the following terms are defined:
 - Secondary link: "Already have an account? Log in"
 
 **Astro Page Responsibilities**:
+
 - Server-side session check: redirect authenticated users
 - Handle POST submission with Supabase Auth signup
 - Send email verification (optional for MVP)
@@ -96,6 +102,7 @@ To avoid confusion throughout this document, the following terms are defined:
 - Redirect to `/dashboard/created` with success toast
 
 **Client Component**: `RegisterForm` (React)
+
 - **Props**: None
 - **State**: `{ email, password, confirmPassword, agreedToTerms, isSubmitting, errors }`
 - **Validation**:
@@ -123,6 +130,7 @@ To avoid confusion throughout this document, the following terms are defined:
 **Location**: `src/pages/forgot-password.astro`
 
 **Visual Design**:
+
 - Simple single-field form
 - Instructional text: "Enter your email address and we'll send you a link to reset your password"
 - Email input field
@@ -130,16 +138,18 @@ To avoid confusion throughout this document, the following terms are defined:
 - Secondary link: "Back to Login"
 
 **Astro Page Responsibilities**:
+
 - Handle POST submission
 - Call Supabase Auth password reset with redirect to `/reset-password`
 - Always show success message (security: don't reveal if email exists)
 - Rate limit: max 3 requests per hour per IP
 
 **Client Component**: `ForgotPasswordForm` (React)
+
 - **Props**: None
 - **State**: `{ email, isSubmitting, isSuccess, errors }`
 - **Validation**: Email required and valid format
-- **Success State**: 
+- **Success State**:
   - Display: "If an account exists with that email, you'll receive a password reset link shortly"
   - Show "Back to Login" button
 - **Error Messages**: Generic error for API failures
@@ -153,18 +163,21 @@ To avoid confusion throughout this document, the following terms are defined:
 **Location**: `src/pages/reset-password.astro`
 
 **Visual Design**:
+
 - Password and Confirm Password fields
 - Password strength indicator
 - Primary CTA: "Reset Password"
 - Error state for expired/invalid tokens
 
 **Astro Page Responsibilities**:
+
 - Extract and validate reset token from URL hash (`#access_token=...`)
 - If token invalid/expired: show error and link to `/forgot-password`
 - Handle POST submission to update password
 - Clear session and redirect to `/login` with success message
 
 **Client Component**: `ResetPasswordForm` (React)
+
 - **Props**: `{ token: string }`
 - **State**: `{ password, confirmPassword, isSubmitting, errors }`
 - **Validation**: Same as registration password validation
@@ -183,6 +196,7 @@ To avoid confusion throughout this document, the following terms are defined:
 **Location**: `src/pages/set-password.astro`
 
 **Visual Design**:
+
 - Welcoming message: "Welcome! Please set your password to continue"
 - Display participant name
 - Password and Confirm Password fields
@@ -190,12 +204,14 @@ To avoid confusion throughout this document, the following terms are defined:
 - Primary CTA: "Set Password"
 
 **Astro Page Responsibilities**:
+
 - Require authenticated session
 - Check if user already has password set; if yes, redirect to `/dashboard/participated`
 - Handle POST submission to update password
 - Redirect to `/dashboard/participated` on success
 
 **Client Component**: `SetPasswordForm` (React)
+
 - Similar to `ResetPasswordForm` but with different context
 
 ---
@@ -205,6 +221,7 @@ To avoid confusion throughout this document, the following terms are defined:
 #### 1.2.1 Welcome Page (`/`)
 
 **Changes**:
+
 - Add authentication check at the top
 - If authenticated: redirect to `/dashboard/created`
 - Add visible CTA buttons:
@@ -212,12 +229,15 @@ To avoid confusion throughout this document, the following terms are defined:
   - "Log In" → `/login`
 
 **Implementation**:
+
 ```astro
 ---
 // src/pages/index.astro
-const { data: { session } } = await Astro.locals.supabase.auth.getSession();
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
 if (session) {
-  return Astro.redirect('/dashboard/created');
+  return Astro.redirect("/dashboard/created");
 }
 ---
 ```
@@ -227,12 +247,14 @@ if (session) {
 #### 1.2.2 Dashboard Pages
 
 **All Dashboard Routes** (`/dashboard/*`):
+
 - Add authentication middleware check
 - Extract user from session
 - Verify user role (author vs participant)
 - Redirect unauthenticated users to `/login?redirect={currentPath}`
 
 **Dashboard Layout** (`src/layouts/dashboard/DashboardLayout.astro`):
+
 - **Add User Menu Component** (top-right corner):
   - Display user email or name
   - Dropdown menu:
@@ -241,16 +263,19 @@ if (session) {
   - Logout: POST to `/api/auth/logout` then redirect to `/`
 
 **Created Draws Page** (`/dashboard/created`):
+
 - Remove `mockUserId` constant
 - Extract `userId` from authenticated session
 - Pass real `userId` to `CreatedDrawsView` component
 - Add auth check with redirect
 
 **Create Draw Page** (`/dashboard/create`):
+
 - Add auth check
 - Pass authenticated user ID to API
 
 **Participated Draws Page** (`/dashboard/participated`):
+
 - New page for participants to view their matches
 - Auth check with participant role verification
 - Display list of draws user is participating in
@@ -262,6 +287,7 @@ if (session) {
 #### 1.3.1 Separation of Responsibilities
 
 **Astro Pages** (`.astro` files):
+
 - Server-side rendering
 - Session validation via `Astro.locals.supabase.auth.getSession()`
 - Route protection and redirects
@@ -269,6 +295,7 @@ if (session) {
 - Progressive enhancement fallback (handle native form POST)
 
 **React Components** (`.tsx` files):
+
 - Client-side interactivity
 - Real-time form validation
 - State management
@@ -277,30 +304,33 @@ if (session) {
 - Error recovery UI
 
 **Example Pattern**:
+
 ```astro
 ---
 // src/pages/login.astro
-import Layout from '../layouts/Layout.astro';
-import { LoginForm } from '../components/auth/LoginForm';
+import Layout from "../layouts/Layout.astro";
+import { LoginForm } from "../components/auth/LoginForm";
 
 export const prerender = false;
 
 // Server-side auth check
-const { data: { session } } = await Astro.locals.supabase.auth.getSession();
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
 if (session) {
-  return Astro.redirect('/dashboard/created');
+  return Astro.redirect("/dashboard/created");
 }
 
 // Handle progressive enhancement (native form POST)
-if (Astro.request.method === 'POST') {
+if (Astro.request.method === "POST") {
   const formData = await Astro.request.formData();
-  const email = formData.get('email')?.toString();
-  const password = formData.get('password')?.toString();
-  
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
   // Validation and auth logic...
 }
 
-const redirectUrl = Astro.url.searchParams.get('redirect') || '/dashboard/created';
+const redirectUrl = Astro.url.searchParams.get("redirect") || "/dashboard/created";
 ---
 
 <Layout title="Log In">
@@ -317,11 +347,13 @@ const redirectUrl = Astro.url.searchParams.get('redirect') || '/dashboard/create
 **Timing**: On blur and on submit
 
 **Email Validation**:
+
 - Required
 - Valid email format (regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`)
 - Max length: 255 characters
 
 **Password Validation**:
+
 - Required
 - Min length: 6 characters
 - Max length: 72 characters (bcrypt limit)
@@ -330,6 +362,7 @@ const redirectUrl = Astro.url.searchParams.get('redirect') || '/dashboard/create
   - At least one number
 
 **Real-Time Feedback**:
+
 - Field-level error messages below inputs
 - Red border on invalid fields
 - Green checkmark on valid fields
@@ -340,43 +373,49 @@ const redirectUrl = Astro.url.searchParams.get('redirect') || '/dashboard/create
 **Always revalidate on server** even if client validation passed.
 
 **Zod Schemas** (`src/lib/schemas/auth.schema.ts`):
+
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email format').max(255),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  email: z.string().email("Invalid email format").max(255),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-export const registerSchema = z.object({
-  email: z.string().email('Invalid email format').max(255),
-  password: z.string().min(6).max(72),
-  confirmPassword: z.string(),
-  agreedToTerms: z.boolean().refine(val => val === true, {
-    message: 'You must agree to the terms',
-  }),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
+export const registerSchema = z
+  .object({
+    email: z.string().email("Invalid email format").max(255),
+    password: z.string().min(6).max(72),
+    confirmPassword: z.string(),
+    agreedToTerms: z.boolean().refine((val) => val === true, {
+      message: "You must agree to the terms",
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email('Invalid email format').max(255),
+  email: z.string().email("Invalid email format").max(255),
 });
 
-export const resetPasswordSchema = z.object({
-  password: z.string().min(6).max(72),
-  confirmPassword: z.string(),
-  token: z.string().min(1),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(6).max(72),
+    confirmPassword: z.string(),
+    token: z.string().min(1),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 ```
 
 #### 1.4.3 Error Messages
 
 **Standard Error Response Format** (aligned with existing `ApiErrorResponse`):
+
 ```typescript
 {
   error: string;    // Error type: "Validation Error", "Unauthorized", etc.
@@ -386,6 +425,7 @@ export const resetPasswordSchema = z.object({
 ```
 
 **HTTP Status Codes**:
+
 - 200 OK: Success
 - 400 Bad Request: Validation errors
 - 401 Unauthorized: Invalid credentials
@@ -395,6 +435,7 @@ export const resetPasswordSchema = z.object({
 - 500 Internal Server Error: Unexpected errors
 
 **User-Facing Error Messages**:
+
 - Keep them generic for security (don't reveal if email exists)
 - Provide actionable next steps
 - Log detailed errors server-side for debugging
@@ -404,6 +445,7 @@ export const resetPasswordSchema = z.object({
 ### 1.5 Key User Scenarios
 
 #### Scenario 1: New Author Registration and First Draw
+
 1. User visits `/` → clicks "Get Started"
 2. Lands on `/register` → fills form → submits
 3. Account created, auto-logged in, redirected to `/dashboard/created`
@@ -417,6 +459,7 @@ export const resetPasswordSchema = z.object({
 11. Success message displayed to author
 
 #### Scenario 2: Participant First Login
+
 1. Draw author creates draw with participant email `participant@example.com`
 2. Author performs the matching (executes matching algorithm)
 3. System auto-provisions participant account with random password during matching
@@ -430,6 +473,7 @@ export const resetPasswordSchema = z.object({
 8. Views assigned match and gift suggestions
 
 #### Scenario 3: Author Forgets Password
+
 1. User visits `/login` → clicks "Forgot password?"
 2. Lands on `/forgot-password` → enters email → submits
 3. Success message displayed
@@ -438,6 +482,7 @@ export const resetPasswordSchema = z.object({
 6. Redirected to `/login` with success toast → logs in with new password
 
 #### Scenario 4: Protected Route Access Without Auth
+
 1. Unauthenticated user tries to visit `/dashboard/created`
 2. Middleware detects no session → redirects to `/login?redirect=/dashboard/created`
 3. User logs in → redirected back to `/dashboard/created`
@@ -461,6 +506,7 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Location**: `src/pages/api/auth/register.ts`
 
 **Request Body**:
+
 ```typescript
 {
   email: string;
@@ -473,6 +519,7 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Validation**: Use `registerSchema`
 
 **Process**:
+
 1. Validate request body
 2. Check rate limit (max 5 registrations per hour per IP)
 3. Call `supabase.auth.signUp({ email, password })`
@@ -482,13 +529,14 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 7. Return user object
 
 **Response**:
+
 - **201 Created**: User created and authenticated
   ```typescript
   {
     user: {
       id: string;
       email: string;
-      role: 'author';
+      role: "author";
     }
   }
   ```
@@ -498,6 +546,7 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 - **500 Internal Server Error**: Unexpected error
 
 **Notes**:
+
 - Email verification optional for MVP (can be enabled later)
 - Supabase handles password hashing automatically
 
@@ -510,6 +559,7 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Location**: `src/pages/api/auth/login.ts`
 
 **Request Body**:
+
 ```typescript
 {
   email: string;
@@ -520,12 +570,14 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Validation**: Use `loginSchema`
 
 **Process**:
+
 1. Validate request body
 2. Call `supabase.auth.signInWithPassword({ email, password })`
 3. If successful, set session cookies
 4. Return user object and session info
 
 **Response**:
+
 - **200 OK**: Authenticated
   ```typescript
   {
@@ -542,6 +594,7 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 - **500 Internal Server Error**: Unexpected error
 
 **Notes**:
+
 - Check if user is participant without password set
 - Return `requiresPasswordSetup: true` if applicable
 
@@ -556,15 +609,17 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Request Body**: None
 
 **Process**:
+
 1. Call `supabase.auth.signOut()`
 2. Clear session cookies
 3. Return success
 
 **Response**:
+
 - **200 OK**: Logged out
   ```typescript
   {
-    message: "Logged out successfully"
+    message: "Logged out successfully";
   }
   ```
 
@@ -577,6 +632,7 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Location**: `src/pages/api/auth/forgot-password.ts`
 
 **Request Body**:
+
 ```typescript
 {
   email: string;
@@ -586,16 +642,18 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Validation**: Use `forgotPasswordSchema`
 
 **Process**:
+
 1. Validate request body
 2. Check rate limit (max 3 requests per hour per IP)
 3. Call `supabase.auth.resetPasswordForEmail(email, { redirectTo: '{SITE_URL}/reset-password' })`
 4. Always return success (security: don't reveal if email exists)
 
 **Response**:
+
 - **200 OK**: Request processed
   ```typescript
   {
-    message: "If an account exists with that email, you'll receive a password reset link shortly"
+    message: "If an account exists with that email, you'll receive a password reset link shortly";
   }
   ```
 - **429 Too Many Requests**: Rate limit exceeded
@@ -609,17 +667,19 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Location**: `src/pages/api/auth/reset-password.ts`
 
 **Request Body**:
+
 ```typescript
 {
   password: string;
   confirmPassword: string;
-  token: string;  // from URL hash
+  token: string; // from URL hash
 }
 ```
 
 **Validation**: Use `resetPasswordSchema`
 
 **Process**:
+
 1. Validate request body
 2. Verify token with `supabase.auth.verifyOtp({ token_hash: token, type: 'recovery' })`
 3. If valid, call `supabase.auth.updateUser({ password })`
@@ -627,10 +687,11 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 5. Return success
 
 **Response**:
+
 - **200 OK**: Password updated
   ```typescript
   {
-    message: "Password updated successfully"
+    message: "Password updated successfully";
   }
   ```
 - **400 Bad Request**: Invalid or expired token
@@ -645,6 +706,7 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Location**: `src/pages/api/auth/set-password.ts`
 
 **Request Body**:
+
 ```typescript
 {
   password: string;
@@ -655,6 +717,7 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Validation**: Use password validation from `resetPasswordSchema`
 
 **Process**:
+
 1. Verify user is authenticated
 2. Check user has participant role
 3. Validate request body
@@ -663,6 +726,7 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 6. Return success
 
 **Response**:
+
 - **200 OK**: Password set
 - **401 Unauthorized**: Not authenticated
 - **403 Forbidden**: Not a participant
@@ -678,11 +742,13 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **Request**: None
 
 **Process**:
+
 1. Call `supabase.auth.getSession()`
 2. If session exists, return user info
 3. If not, return null
 
 **Response**:
+
 - **200 OK**: Session info
   ```typescript
   {
@@ -701,17 +767,22 @@ All endpoints under `/api/auth/*` with `export const prerender = false`.
 **All existing API endpoints** (`/api/draws`, `/api/draws/[drawId]/*`):
 
 **Changes Required**:
+
 1. Uncomment authentication checks (currently marked with `// TODO`)
 2. Replace `mockUserId` with `auth.uid()` from session
 3. Add error response for missing/invalid authentication
 
 **Example Pattern** (apply to all endpoints):
+
 ```typescript
 // Before (mocked)
 const mockUserId = "00000000-0000-0000-0000-000000000000";
 
 // After (real auth)
-const { data: { user }, error: authError } = await locals.supabase.auth.getUser();
+const {
+  data: { user },
+  error: authError,
+} = await locals.supabase.auth.getUser();
 
 if (authError || !user) {
   return new Response(
@@ -730,6 +801,7 @@ const userId = user.id;
 ```
 
 **Files to Update**:
+
 - `src/pages/api/draws.ts` (GET and POST)
 - `src/pages/api/draws/[drawId]/participants.ts`
 - `src/pages/api/draws/[drawId]/perform-draw.ts`
@@ -744,6 +816,7 @@ const userId = user.id;
 **File**: `src/middleware/index.ts`
 
 **Current Implementation**:
+
 ```typescript
 import { defineMiddleware } from "astro:middleware";
 import { supabaseClient } from "../db/supabase.client";
@@ -755,6 +828,7 @@ export const onRequest = defineMiddleware((context, next) => {
 ```
 
 **Issues**:
+
 - Uses shared `supabaseClient` instance (not request-specific)
 - Doesn't handle session cookies
 - Doesn't create request-scoped client
@@ -766,6 +840,7 @@ export const onRequest = defineMiddleware((context, next) => {
 **Purpose**: Create request-scoped Supabase client with cookie handling.
 
 **Updated Implementation**:
+
 ```typescript
 import { defineMiddleware } from "astro:middleware";
 import { createServerClient } from "@supabase/ssr";
@@ -773,41 +848,40 @@ import type { Database } from "../db/database.types";
 
 export const onRequest = defineMiddleware(async (context, next) => {
   // Create request-scoped Supabase client
-  context.locals.supabase = createServerClient<Database>(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_KEY,
-    {
-      cookies: {
-        get(key) {
-          return context.cookies.get(key)?.value;
-        },
-        set(key, value, options) {
-          context.cookies.set(key, value, options);
-        },
-        remove(key, options) {
-          context.cookies.delete(key, options);
-        },
+  context.locals.supabase = createServerClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
+    cookies: {
+      get(key) {
+        return context.cookies.get(key)?.value;
       },
-    }
-  );
+      set(key, value, options) {
+        context.cookies.set(key, value, options);
+      },
+      remove(key, options) {
+        context.cookies.delete(key, options);
+      },
+    },
+  });
 
   return next();
 });
 ```
 
 **Key Changes**:
+
 1. Import `createServerClient` from `@supabase/ssr` instead of using shared client
 2. Create new client for each request with cookie handlers
 3. Client automatically manages session cookies
 4. Supports both reading and writing cookies
 
 **Benefits**:
+
 - Proper session isolation between requests
 - Automatic cookie management
 - Secure HTTP-only cookies
 - CSRF protection
 
 **Required Package**:
+
 - Install: `@supabase/ssr`
 - Update `package.json` dependencies
 
@@ -818,6 +892,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 #### 2.3.1 Auth User Metadata
 
 **Supabase `auth.users` table** (managed by Supabase):
+
 - `id` (uuid, primary key)
 - `email` (text, unique)
 - `encrypted_password` (text, managed by Supabase)
@@ -838,6 +913,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 **No changes needed** to existing tables (`draws`, `draw_participants`, `matches`, `ai_suggestions`).
 
 **Existing Relationship**:
+
 - `draws.author_id` → `auth.users.id` (already in place)
 - `draw_participants.user_id` → `auth.users.id` (nullable, set after auto-provisioning)
 
@@ -853,7 +929,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 /**
  * User role enum matching database type
  */
-export type UserRole = 'author' | 'participant';
+export type UserRole = "author" | "participant";
 
 /**
  * Authenticated user information
@@ -936,9 +1012,7 @@ interface ImportMeta {
 // Extend Astro.locals with typed Supabase client
 declare namespace App {
   interface Locals {
-    supabase: import("@supabase/supabase-js").SupabaseClient<
-      import("./db/database.types").Database
-    >;
+    supabase: import("@supabase/supabase-js").SupabaseClient<import("./db/database.types").Database>;
   }
 }
 ```
@@ -953,13 +1027,15 @@ declare namespace App {
 
 **Purpose**: Improve UX with immediate feedback.
 
-**Implementation**: 
+**Implementation**:
+
 - Use native HTML5 validation attributes (`required`, `type="email"`, `minlength`, `maxlength`)
 - Enhance with custom React validation logic
 - Display inline error messages
 - Prevent submission if validation fails
 
 **Timing**:
+
 - On field blur
 - On form submit attempt
 - Real-time for password strength
@@ -975,16 +1051,17 @@ declare namespace App {
 **Location**: `src/lib/schemas/auth.schema.ts`
 
 **Pattern** (apply to all auth endpoints):
+
 ```typescript
 import { loginSchema } from "../../lib/schemas/auth.schema";
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const body = await request.json();
-    
+
     // Validate with Zod
     const validationResult = loginSchema.safeParse(body);
-    
+
     if (!validationResult.success) {
       const errors = validationResult.error.errors.map((err) => ({
         field: err.path.join("."),
@@ -1005,9 +1082,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     const { email, password } = validationResult.data;
-    
+
     // Proceed with business logic...
-    
   } catch (error) {
     // Error handling...
   }
@@ -1019,11 +1095,13 @@ export const POST: APIRoute = async ({ request, locals }) => {
 #### 2.4.3 Sanitization
 
 **Input Sanitization**:
+
 - Email: Trim whitespace, lowercase
 - Password: No trimming (preserve intentional spaces)
 - Names: Trim whitespace
 
 **Output Encoding**:
+
 - Use React's built-in XSS protection (escapes by default)
 - Never use `dangerouslySetInnerHTML` for user input
 - API responses are JSON (automatically safe)
@@ -1035,6 +1113,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 #### 2.5.1 API Error Handling Pattern
 
 **Standard Pattern** (apply to all auth endpoints):
+
 ```typescript
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
@@ -1068,7 +1147,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       // Map Supabase error to user-friendly message
       const statusCode = error.status || 500;
       const message = mapAuthError(error);
-      
+
       await LoggerService.warn("Authentication failed", {
         error: error.message,
         email: validationResult.data.email,
@@ -1088,7 +1167,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-
   } catch (error) {
     // Unexpected error handling
     await LoggerService.error("Unexpected error in auth endpoint", {
@@ -1116,23 +1194,23 @@ export const POST: APIRoute = async ({ request, locals }) => {
 **Location**: `src/lib/services/auth-error.service.ts`
 
 ```typescript
-import { AuthError } from '@supabase/supabase-js';
+import { AuthError } from "@supabase/supabase-js";
 
 export function mapAuthError(error: AuthError): string {
   switch (error.message) {
-    case 'Invalid login credentials':
-      return 'Invalid email or password';
-    case 'Email not confirmed':
-      return 'Please verify your email address';
-    case 'User already registered':
-      return 'An account with this email already exists';
-    case 'Password is too weak':
-      return 'Password is too weak. Please choose a stronger password';
+    case "Invalid login credentials":
+      return "Invalid email or password";
+    case "Email not confirmed":
+      return "Please verify your email address";
+    case "User already registered":
+      return "An account with this email already exists";
+    case "Password is too weak":
+      return "Password is too weak. Please choose a stronger password";
     default:
       if (error.status === 429) {
-        return 'Too many attempts. Please try again later';
+        return "Too many attempts. Please try again later";
       }
-      return 'Authentication failed. Please try again';
+      return "Authentication failed. Please try again";
   }
 }
 ```
@@ -1142,12 +1220,14 @@ export function mapAuthError(error: AuthError): string {
 #### 2.5.3 Logging Strategy
 
 **Use Existing `LoggerService`**:
+
 - Log all authentication attempts (success and failure)
 - Include: timestamp, email, IP address (if available), error details
 - Don't log passwords or tokens
 - Use appropriate log levels: `info`, `warn`, `error`
 
 **Examples**:
+
 ```typescript
 await LoggerService.info("User logged in successfully", { userId, email });
 await LoggerService.warn("Failed login attempt", { email, reason: "invalid_credentials" });
@@ -1161,9 +1241,10 @@ await LoggerService.error("Unexpected error during registration", { error, stack
 #### 2.6.1 SSR Configuration
 
 **Already Configured** in `astro.config.mjs`:
+
 ```javascript
 export default defineConfig({
-  output: "server",  // SSR enabled
+  output: "server", // SSR enabled
   adapter: node({ mode: "standalone" }),
   // ...
 });
@@ -1180,18 +1261,21 @@ export default defineConfig({
 **Helper Function**: `src/lib/utils/auth.utils.ts`
 
 ```typescript
-import type { AstroGlobal } from 'astro';
-import type { AuthUser } from '../../types';
+import type { AstroGlobal } from "astro";
+import type { AuthUser } from "../../types";
 
 /**
  * Protects a route by requiring authentication.
  * Redirects to login if not authenticated.
- * 
+ *
  * @param Astro - Astro global object
  * @returns Authenticated user
  */
 export async function requireAuth(Astro: AstroGlobal): Promise<AuthUser> {
-  const { data: { user }, error } = await Astro.locals.supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await Astro.locals.supabase.auth.getUser();
 
   if (error || !user) {
     const redirectUrl = Astro.url.pathname + Astro.url.search;
@@ -1201,7 +1285,7 @@ export async function requireAuth(Astro: AstroGlobal): Promise<AuthUser> {
   return {
     id: user.id,
     email: user.email!,
-    role: user.user_metadata?.role || 'participant',
+    role: user.user_metadata?.role || "participant",
     name: user.user_metadata?.name,
     password_set: user.user_metadata?.password_set,
   };
@@ -1209,15 +1293,15 @@ export async function requireAuth(Astro: AstroGlobal): Promise<AuthUser> {
 
 /**
  * Protects a route by requiring author role.
- * 
+ *
  * @param Astro - Astro global object
  * @returns Authenticated author user
  */
 export async function requireAuthor(Astro: AstroGlobal): Promise<AuthUser> {
   const user = await requireAuth(Astro);
 
-  if (user.role !== 'author') {
-    return Astro.redirect('/dashboard/participated');
+  if (user.role !== "author") {
+    return Astro.redirect("/dashboard/participated");
   }
 
   return user;
@@ -1225,20 +1309,20 @@ export async function requireAuthor(Astro: AstroGlobal): Promise<AuthUser> {
 
 /**
  * Protects a route by requiring participant role.
- * 
+ *
  * @param Astro - Astro global object
  * @returns Authenticated participant user
  */
 export async function requireParticipant(Astro: AstroGlobal): Promise<AuthUser> {
   const user = await requireAuth(Astro);
 
-  if (user.role !== 'participant') {
-    return Astro.redirect('/dashboard/created');
+  if (user.role !== "participant") {
+    return Astro.redirect("/dashboard/created");
   }
 
   // Check if password needs to be set
   if (!user.password_set) {
-    return Astro.redirect('/set-password');
+    return Astro.redirect("/set-password");
   }
 
   return user;
@@ -1246,12 +1330,15 @@ export async function requireParticipant(Astro: AstroGlobal): Promise<AuthUser> 
 
 /**
  * Gets current session without requiring auth (returns null if not authenticated).
- * 
+ *
  * @param Astro - Astro global object
  * @returns User if authenticated, null otherwise
  */
 export async function getSession(Astro: AstroGlobal): Promise<AuthUser | null> {
-  const { data: { user }, error } = await Astro.locals.supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await Astro.locals.supabase.auth.getUser();
 
   if (error || !user) {
     return null;
@@ -1260,7 +1347,7 @@ export async function getSession(Astro: AstroGlobal): Promise<AuthUser | null> {
   return {
     id: user.id,
     email: user.email!,
-    role: user.user_metadata?.role || 'participant',
+    role: user.user_metadata?.role || "participant",
     name: user.user_metadata?.name,
     password_set: user.user_metadata?.password_set,
   };
@@ -1306,12 +1393,14 @@ const user = await requireAuthor(Astro);
 #### 3.1.1 Architecture Overview
 
 **Components**:
+
 1. **Supabase Auth Service**: Managed authentication service (handles password hashing, JWT issuance, email sending)
 2. **Astro Middleware**: Creates request-scoped Supabase clients with cookie handling
 3. **API Endpoints**: Wrapper endpoints for auth operations (registration, login, logout, password reset)
 4. **Protected Routes**: Pages and API routes that require authentication
 
 **Flow Diagram**:
+
 ```
 User Browser
     ↓ (HTTPS Request with cookies)
@@ -1333,11 +1422,13 @@ User Browser
 #### 3.1.2 Authentication Methods
 
 **Supported Methods**:
+
 1. **Email/Password**: Primary method for authors and participants
 2. **Password Reset**: Email-based password recovery
 3. **Auto-provisioned Accounts**: System-created accounts for participants
 
 **Not Implemented** (out of scope):
+
 - OAuth providers (Google, GitHub, etc.)
 - Magic links
 - Phone/SMS authentication
@@ -1348,6 +1439,7 @@ User Browser
 #### 3.1.3 Supabase Configuration
 
 **Environment Variables** (`.env`):
+
 ```
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your-anon-key
@@ -1355,6 +1447,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # for server-side operations on
 ```
 
 **Supabase Dashboard Settings** (`supabase/config.toml` or Dashboard):
+
 ```toml
 [auth]
 site_url = "https://yourdomain.com"  # or http://localhost:3000 for dev
@@ -1375,16 +1468,19 @@ subject = "Reset Your JulklApp Password"
 #### 3.1.4 JWT Configuration
 
 **Token Expiry**:
+
 - Access Token: 1 hour (default, configurable in Supabase)
 - Refresh Token: 30 days (default)
 
 **Token Refresh**:
+
 - Handled automatically by `@supabase/ssr` client
 - Client checks token expiry before requests
 - Auto-refreshes if expired and refresh token valid
 - Updates cookies with new tokens
 
 **JWT Claims** (auto-managed by Supabase):
+
 ```json
 {
   "sub": "user-uuid",
@@ -1406,11 +1502,13 @@ subject = "Reset Your JulklApp Password"
 #### 3.2.1 Cookie Strategy
 
 **Cookies Set by Supabase**:
+
 1. `sb-<project-ref>-auth-token`: Access token (JWT)
 2. `sb-<project-ref>-auth-token-code-verifier`: PKCE verifier for OAuth
 3. `sb-<project-ref>-auth-refresh-token`: Refresh token
 
 **Cookie Attributes**:
+
 - `HttpOnly`: Yes (prevents JavaScript access, XSS protection)
 - `Secure`: Yes in production (HTTPS only)
 - `SameSite`: Lax (CSRF protection, allows navigation)
@@ -1418,6 +1516,7 @@ subject = "Reset Your JulklApp Password"
 - `Max-Age`: Matches token expiry
 
 **Automatic Management**:
+
 - `@supabase/ssr` handles all cookie operations
 - Cookies set via Astro's `context.cookies` API
 - Middleware provides cookie handlers to Supabase client
@@ -1427,6 +1526,7 @@ subject = "Reset Your JulklApp Password"
 #### 3.2.2 Cookie Security
 
 **Best Practices**:
+
 1. **HTTP-Only**: Prevents client-side JavaScript from accessing tokens (mitigates XSS)
 2. **Secure Flag**: Ensures cookies only sent over HTTPS in production
 3. **SameSite**: Prevents CSRF attacks
@@ -1434,6 +1534,7 @@ subject = "Reset Your JulklApp Password"
 5. **Refresh Rotation**: New refresh token issued with each use (optional, configurable)
 
 **Production Configuration**:
+
 ```typescript
 // In production, ensure HTTPS is enforced
 // Set in environment or server config
@@ -1441,9 +1542,9 @@ const isProduction = import.meta.env.PROD;
 
 const cookieOptions = {
   httpOnly: true,
-  secure: isProduction,  // true in production
-  sameSite: 'lax' as const,
-  path: '/',
+  secure: isProduction, // true in production
+  sameSite: "lax" as const,
+  path: "/",
 };
 ```
 
@@ -1454,6 +1555,7 @@ const cookieOptions = {
 #### 3.3.1 Session Creation
 
 **During Login/Registration**:
+
 1. User submits credentials
 2. API calls `supabase.auth.signInWithPassword()` or `supabase.auth.signUp()`
 3. Supabase validates credentials, generates JWT
@@ -1463,6 +1565,7 @@ const cookieOptions = {
 7. Client redirects to dashboard
 
 **Code Example** (`/api/auth/login.ts`):
+
 ```typescript
 const { data, error } = await locals.supabase.auth.signInWithPassword({
   email,
@@ -1486,6 +1589,7 @@ return new Response(JSON.stringify({ user: data.user }), {
 #### 3.3.2 Session Validation
 
 **On Every Protected Request**:
+
 1. Middleware creates Supabase client with cookie handlers
 2. Page/API route calls `supabase.auth.getUser()`
 3. Supabase client:
@@ -1497,11 +1601,15 @@ return new Response(JSON.stringify({ user: data.user }), {
 4. Application proceeds or redirects to login
 
 **Code Example**:
+
 ```typescript
-const { data: { user }, error } = await Astro.locals.supabase.auth.getUser();
+const {
+  data: { user },
+  error,
+} = await Astro.locals.supabase.auth.getUser();
 
 if (error || !user) {
-  return Astro.redirect('/login?redirect=' + Astro.url.pathname);
+  return Astro.redirect("/login?redirect=" + Astro.url.pathname);
 }
 
 // User is authenticated, proceed
@@ -1512,6 +1620,7 @@ if (error || !user) {
 #### 3.3.3 Session Termination
 
 **Logout Process**:
+
 1. User clicks "Log Out"
 2. Client sends POST to `/api/auth/logout`
 3. API calls `supabase.auth.signOut()`
@@ -1521,6 +1630,7 @@ if (error || !user) {
 7. Client redirects to `/`
 
 **Code Example** (`/api/auth/logout.ts`):
+
 ```typescript
 const { error } = await locals.supabase.auth.signOut();
 
@@ -1537,6 +1647,7 @@ return new Response(JSON.stringify({ message: "Logged out successfully" }), {
 ```
 
 **Session Expiry**:
+
 - Access token expires after 1 hour
 - If refresh token also expired (after 30 days), user must re-login
 - No activity timeout (optional future feature)
@@ -1550,6 +1661,7 @@ return new Response(JSON.stringify({ message: "Logged out successfully" }), {
 **Pattern**: Use `requireAuth()` or role-specific helpers at top of page component.
 
 **Example - Author Route**:
+
 ```astro
 ---
 // src/pages/dashboard/create.astro
@@ -1566,6 +1678,7 @@ const user = await requireAuthor(Astro);
 ```
 
 **Example - Participant Route**:
+
 ```astro
 ---
 // src/pages/dashboard/participated.astro
@@ -1588,11 +1701,15 @@ const user = await requireParticipant(Astro);
 **Pattern**: Check auth at beginning of every protected API endpoint.
 
 **Example**:
+
 ```typescript
 // src/pages/api/draws.ts
 export const GET: APIRoute = async ({ locals }) => {
   // Authenticate
-  const { data: { user }, error } = await locals.supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await locals.supabase.auth.getUser();
 
   if (error || !user) {
     return new Response(
@@ -1620,11 +1737,13 @@ export const GET: APIRoute = async ({ locals }) => {
 #### 3.4.3 Role-Based Access Control
 
 **Authorization Strategy**:
+
 1. **Authentication**: Verify user is logged in
 2. **Role Check**: Verify user has required role
 3. **Resource Ownership**: Verify user owns/has access to resource
 
 **Example - Draw Ownership Check**:
+
 ```typescript
 const drawService = new DrawService(locals.supabase);
 const draw = await drawService.getDrawByIdForAuthor(drawId, user.id);
@@ -1641,11 +1760,13 @@ if (!draw) {
 ```
 
 **RLS Policies** (already implemented in migrations):
+
 - Authors can only see/modify their own draws
 - Participants can only see their own match
 - Enforced at database level (defense in depth)
 
 **Draw Immutability** (per PRD US-004):
+
 - Once a draw is created and matching is performed, it cannot be modified or deleted
 - API endpoints should reject UPDATE/DELETE operations on draws with existing matches
 - Frontend should hide/disable edit and delete buttons for completed draws
@@ -1658,11 +1779,13 @@ if (!draw) {
 #### 3.5.1 Process Flow
 
 **IMPORTANT CLARIFICATION:**
+
 - **Draw Creation**: Author creates draw record with participant details (name, surname, email, gift preferences). NO provisioning happens at this stage.
 - **Performing the Draw/Match**: Author executes the matching algorithm via POST `/api/draws/{drawId}/match`. Provisioning happens during this step.
 - **Completed Draw**: After matching is successfully executed and participants are provisioned.
 
 **During Draw Matching Execution** (not draw creation):
+
 1. Matching algorithm generates pairings
 2. For each participant, system checks if email exists in `auth.users`:
    - If yes: Link `draw_participants.user_id` to existing user
@@ -1678,6 +1801,7 @@ if (!draw) {
 6. Send invitation email with temporary password to newly provisioned participants
 
 **Rationale**: Provisioning during matching (not draw creation) ensures:
+
 - Only draws that are actually completed (matched) create user accounts
 - Cleaner separation: draw creation is data entry, matching execution is the "event completion"
 - Aligns with PRD US-006: "Given a completed draw, when event ends, then participant accounts exist"
@@ -1689,8 +1813,8 @@ if (!draw) {
 **Service**: `src/lib/services/participant-provisioning.service.ts`
 
 ```typescript
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../../db/database.types';
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "../../db/database.types";
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -1706,23 +1830,23 @@ const adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
  * Generates a secure random password
  */
 function generateSecurePassword(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
   const length = 32;
-  let password = '';
-  
+  let password = "";
+
   const array = new Uint32Array(length);
   crypto.getRandomValues(array);
-  
+
   for (let i = 0; i < length; i++) {
     password += chars[array[i] % chars.length];
   }
-  
+
   return password;
 }
 
 /**
  * Provisions a participant user account
- * 
+ *
  * @param email - Participant email
  * @returns User ID and temporary password
  */
@@ -1731,14 +1855,10 @@ export async function provisionParticipant(email: string): Promise<{
   tempPassword: string;
 }> {
   // Check if user exists
-  const { data: existingUser } = await adminClient
-    .from('auth.users')
-    .select('id')
-    .eq('email', email)
-    .single();
+  const { data: existingUser } = await adminClient.from("auth.users").select("id").eq("email", email).single();
 
   if (existingUser) {
-    return { userId: existingUser.id, tempPassword: '' };
+    return { userId: existingUser.id, tempPassword: "" };
   }
 
   // Create new user
@@ -1747,9 +1867,9 @@ export async function provisionParticipant(email: string): Promise<{
   const { data, error } = await adminClient.auth.admin.createUser({
     email,
     password: tempPassword,
-    email_confirm: true,  // Skip email verification
+    email_confirm: true, // Skip email verification
     user_metadata: {
-      role: 'participant',
+      role: "participant",
       password_set: false,
     },
   });
@@ -1763,6 +1883,7 @@ export async function provisionParticipant(email: string): Promise<{
 ```
 
 **Integration in MatchingService**:
+
 ```typescript
 // In generateMatches method, after running matching algorithm:
 // This is the ACTUAL implementation location - provisioning happens during matching, not draw creation
@@ -1795,8 +1916,8 @@ async generateMatches(drawId: string): Promise<void> {
   if (provisionedAccounts.length > 0) {
     for (const account of provisionedAccounts) {
       await sendParticipantInvitation(
-        account.email, 
-        account.tempPassword, 
+        account.email,
+        account.tempPassword,
         drawId
       );
     }
@@ -1809,6 +1930,7 @@ async generateMatches(drawId: string): Promise<void> {
 #### 3.5.3 First-Time Password Setup
 
 **Flow**:
+
 1. Participant receives email with temp password
 2. Logs in with email and temp password
 3. System detects `password_set: false` in user metadata
@@ -1818,6 +1940,7 @@ async generateMatches(drawId: string): Promise<void> {
 7. Redirect to `/dashboard/participated`
 
 **Security Considerations**:
+
 - Temp password is single-use (force change on first login via `/set-password` flow)
 - Temp password expires after 7 days (configurable via Supabase settings)
 - Email delivery method:
@@ -1837,6 +1960,7 @@ async generateMatches(drawId: string): Promise<void> {
 #### 3.6.1 Authentication Errors
 
 **Scenarios**:
+
 1. **Invalid Credentials**: Return 401 with "Invalid email or password"
 2. **Account Locked**: Return 403 with "Account locked. Contact support"
 3. **Email Not Verified**: Return 403 with "Please verify your email"
@@ -1850,6 +1974,7 @@ async generateMatches(drawId: string): Promise<void> {
 **Scenario**: Multiple tabs with same user session.
 
 **Solution**:
+
 - Supabase handles token refresh atomically
 - Use broadcast channel for cross-tab communication (optional)
 - Logout in one tab should invalidate all tabs
@@ -1859,11 +1984,13 @@ async generateMatches(drawId: string): Promise<void> {
 #### 3.6.3 Token Security
 
 **JWT Exposure**:
+
 - Tokens stored in HTTP-only cookies (not accessible to JS)
 - Never expose tokens in URL, localStorage, or console logs
 - Use HTTPS in production
 
 **Token Revocation**:
+
 - Refresh tokens can be revoked via `supabase.auth.signOut()`
 - Consider implementing token blacklist for sensitive operations (future enhancement)
 
@@ -2041,6 +2168,7 @@ ENABLE_EMAIL_CONFIRMATIONS=true
 ### 7.2 Supabase Dashboard Configuration
 
 **Auth Settings**:
+
 - Site URL: Production domain
 - Redirect URLs: Whitelist all valid redirect URLs
 - Email Auth: Enable
@@ -2048,6 +2176,7 @@ ENABLE_EMAIL_CONFIRMATIONS=true
 - Password Requirements: Minimum 6 characters
 
 **Email Templates**:
+
 - Confirmation: Customize branding
 - Password Reset: Customize with JulklApp branding
 - Invitation: Create custom template for participants
@@ -2056,19 +2185,19 @@ ENABLE_EMAIL_CONFIRMATIONS=true
 
 ### 7.3 API Contract Summary
 
-| Endpoint | Method | Auth Required | Purpose |
-|----------|--------|---------------|---------|
-| `/api/auth/register` | POST | No | Create author account |
-| `/api/auth/login` | POST | No | Authenticate user |
-| `/api/auth/logout` | POST | Yes | End session |
-| `/api/auth/forgot-password` | POST | No | Request password reset |
-| `/api/auth/reset-password` | POST | No | Reset password with token |
-| `/api/auth/set-password` | POST | Yes | Set password (participants) |
-| `/api/auth/session` | GET | No | Get current session |
-| `/api/draws` | GET | Yes | List user's draws |
-| `/api/draws` | POST | Yes | Create draw |
-| `/api/draws/[id]/participants` | GET | Yes | Get draw participants |
-| `/api/draws/[id]/perform-draw` | POST | Yes | Execute matching |
+| Endpoint                       | Method | Auth Required | Purpose                     |
+| ------------------------------ | ------ | ------------- | --------------------------- |
+| `/api/auth/register`           | POST   | No            | Create author account       |
+| `/api/auth/login`              | POST   | No            | Authenticate user           |
+| `/api/auth/logout`             | POST   | Yes           | End session                 |
+| `/api/auth/forgot-password`    | POST   | No            | Request password reset      |
+| `/api/auth/reset-password`     | POST   | No            | Reset password with token   |
+| `/api/auth/set-password`       | POST   | Yes           | Set password (participants) |
+| `/api/auth/session`            | GET    | No            | Get current session         |
+| `/api/draws`                   | GET    | Yes           | List user's draws           |
+| `/api/draws`                   | POST   | Yes           | Create draw                 |
+| `/api/draws/[id]/participants` | GET    | Yes           | Get draw participants       |
+| `/api/draws/[id]/perform-draw` | POST   | Yes           | Execute matching            |
 
 ### 7.4 File Structure
 
@@ -2130,70 +2259,79 @@ This section documents how this specification aligns with the Product Requiremen
 
 ### 8.1 User Story Coverage
 
-| User Story | Status | Implementation Notes |
-|------------|--------|---------------------|
-| US-001: Author registration and login | ✅ Covered | Sections 1.1.1, 1.1.2, 2.1.1 |
-| US-002: Create Secret Santa draw | ✅ Covered | Existing functionality, auth check added |
-| US-003: Input participant details | ✅ Covered | Existing functionality, auth check added |
-| US-004: Prohibit draw modifications | ✅ Covered | Section 3.4.3, requires frontend + API enforcement |
-| US-005: Perform matching algorithm | ✅ Covered | Existing functionality, auth check added |
-| US-006: Auto-provision participants | ✅ Covered | Section 3.5, **clarified timing: during matching, not draw creation** |
-| US-007: Participant password setup | ✅ Covered | Section 1.1.5, 3.5.3 |
-| US-008: Participant login and view match | ✅ Covered | Sections 1.1.1, 1.2.2 |
-| US-009: Generate AI gift suggestions | N/A | Out of scope for auth spec |
-| US-010: Manual refresh AI suggestions | N/A | Out of scope for auth spec |
-| US-011: Enforce row-level security | ✅ Covered | Section 3.4.3 |
-| US-012: View created draws on default page | ✅ Covered | Section 1.2.2 |
-| US-013: Redirect to draw participants after creation | ✅ Covered | Section 1.5 Scenario 1 |
+| User Story                                           | Status     | Implementation Notes                                                  |
+| ---------------------------------------------------- | ---------- | --------------------------------------------------------------------- |
+| US-001: Author registration and login                | ✅ Covered | Sections 1.1.1, 1.1.2, 2.1.1                                          |
+| US-002: Create Secret Santa draw                     | ✅ Covered | Existing functionality, auth check added                              |
+| US-003: Input participant details                    | ✅ Covered | Existing functionality, auth check added                              |
+| US-004: Prohibit draw modifications                  | ✅ Covered | Section 3.4.3, requires frontend + API enforcement                    |
+| US-005: Perform matching algorithm                   | ✅ Covered | Existing functionality, auth check added                              |
+| US-006: Auto-provision participants                  | ✅ Covered | Section 3.5, **clarified timing: during matching, not draw creation** |
+| US-007: Participant password setup                   | ✅ Covered | Section 1.1.5, 3.5.3                                                  |
+| US-008: Participant login and view match             | ✅ Covered | Sections 1.1.1, 1.2.2                                                 |
+| US-009: Generate AI gift suggestions                 | N/A        | Out of scope for auth spec                                            |
+| US-010: Manual refresh AI suggestions                | N/A        | Out of scope for auth spec                                            |
+| US-011: Enforce row-level security                   | ✅ Covered | Section 3.4.3                                                         |
+| US-012: View created draws on default page           | ✅ Covered | Section 1.2.2                                                         |
+| US-013: Redirect to draw participants after creation | ✅ Covered | Section 1.5 Scenario 1                                                |
 
 ### 8.2 Resolved Conflicts
 
 #### 8.2.1 Participant Provisioning Timing
+
 **Initial Conflict**: Early draft suggested provisioning during draw creation.
 **Resolution**: Updated specification to align with implementation and PRD requirements:
+
 - Provisioning happens during **matching execution** (`POST /api/draws/{drawId}/match`)
 - NOT during draw creation (`POST /api/draws`)
 - Rationale: Only completed draws (with matches) should create user accounts
 - See Section 3.5.1 for detailed flow
 
 #### 8.2.2 Email Invitation Timing
+
 **Initial Conflict**: Early draft suggested sending emails during draw creation.
 **Resolution**: Invitation emails are sent **after matching completes**:
+
 - Step 7 in `MatchingService.generateMatches()`
 - Only newly provisioned participants receive invitation emails
 - Existing users who are added as participants don't need invitation emails
 - See Section 3.5.2 for implementation details
 
 #### 8.2.3 Terminology Clarity
+
 **Initial Conflict**: Ambiguous use of "draw" and "draw creation"
 **Resolution**: Added Terminology section with clear definitions:
+
 - "Draw Creation" = Creating draw record with participant details
 - "Performing the Draw/Match" = Executing matching algorithm
 - "Completed Draw" = After matching has been performed
 
 #### 8.2.4 Temporary Password Delivery
+
 **Initial Conflict**: Unclear whether password is in email or separate channel.
 **Resolution**: For MVP, email contains both login link AND temporary password (Section 3.5.3):
+
 - Simpler user experience
 - Single communication channel
 - Future enhancement: Magic links/OTP for better security
 
 ### 8.3 PRD Functional Requirements Alignment
 
-| Requirement | Covered | Notes |
-|-------------|---------|-------|
-| FR-001: User authentication via email/password | ✅ | Sections 1.1.1, 1.1.2 |
-| FR-002: Secure participant login with password setup | ✅ | Section 1.1.5 |
-| FR-006: Execute draw algorithm | ✅ | Existing, adds auth check |
-| FR-007: Auto-provision accounts after draw | ✅ | Section 3.5, **timing clarified** |
-| FR-008: Row-level security | ✅ | Section 3.4.3 |
-| FR-012: Prevent draw modification after creation | ✅ | Section 3.4.3, requires implementation |
+| Requirement                                          | Covered | Notes                                  |
+| ---------------------------------------------------- | ------- | -------------------------------------- |
+| FR-001: User authentication via email/password       | ✅      | Sections 1.1.1, 1.1.2                  |
+| FR-002: Secure participant login with password setup | ✅      | Section 1.1.5                          |
+| FR-006: Execute draw algorithm                       | ✅      | Existing, adds auth check              |
+| FR-007: Auto-provision accounts after draw           | ✅      | Section 3.5, **timing clarified**      |
+| FR-008: Row-level security                           | ✅      | Section 3.4.3                          |
+| FR-012: Prevent draw modification after creation     | ✅      | Section 3.4.3, requires implementation |
 
 ## 9. COMPATIBILITY NOTES
 
 ### 9.1 Backward Compatibility
 
 **Existing Features**:
+
 - ✅ Draw creation flow unchanged
 - ✅ Participant management unchanged
 - ✅ Matching algorithm unchanged
@@ -2202,6 +2340,7 @@ This section documents how this specification aligns with the Product Requiremen
 - ✅ API contracts unchanged (except adding real authentication)
 
 **Migration Path**:
+
 1. Development databases: Run new migrations, remove mock user policies
 2. Existing mock users: Create real accounts or use service key to migrate
 3. UI components: Replace mock user IDs with real authenticated user IDs
@@ -2211,6 +2350,7 @@ This section documents how this specification aligns with the Product Requiremen
 **None** for end-users (this is first production release).
 
 For developers:
+
 - Must uncomment auth checks in API endpoints
 - Must remove `mockUserId` constants
 - Must add `export const prerender = false` to all pages using auth
@@ -2218,6 +2358,7 @@ For developers:
 ### 9.3 Database Migrations
 
 **Required Migration**:
+
 ```sql
 -- Remove mock user policies
 DROP POLICY IF EXISTS mock_user_modify_draws ON draws;
@@ -2238,6 +2379,7 @@ DELETE FROM auth.users WHERE id = '00000000-0000-0000-0000-000000000000';
 This specification provides a comprehensive blueprint for implementing secure, user-friendly authentication in JulklApp using Supabase Auth and Astro. The architecture leverages existing patterns in the codebase (Zod validation, service layer, API error handling) while introducing new components specifically for authentication.
 
 Key strengths of this approach:
+
 - **Security-first**: HTTP-only cookies, RLS policies, proper error handling
 - **User experience**: Progressive enhancement, real-time validation, clear error messages
 - **Maintainability**: Modular architecture, reusable helpers, consistent patterns
@@ -2253,10 +2395,10 @@ Upon implementation, JulklApp will have a production-ready authentication system
 **Author**: AI Development Consultant  
 **Status**: Ready for Implementation  
 **Changes in v1.1**:
+
 - Clarified participant provisioning timing (during matching, not draw creation)
 - Added Terminology section for clarity
 - Added Section 8: Alignment with PRD
 - Resolved conflicts with PRD requirements
 - Updated user journey scenarios
 - Clarified temporary password delivery method
-

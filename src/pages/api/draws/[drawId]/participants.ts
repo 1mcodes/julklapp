@@ -30,11 +30,30 @@ export const prerender = false;
  */
 export const GET: APIRoute = async ({ params, locals }) => {
   try {
-    // TODO: Implement proper authentication when ready
-    // For now, using mock user ID
-    const mockUserId = "00000000-0000-0000-0000-000000000000";
+    // Step 1: Get authenticated user (middleware ensures user is authenticated)
+    const {
+      data: { user },
+      error: authError,
+    } = await locals.supabase.auth.getUser();
 
-    // Step 1: Validate path parameter
+    if (authError || !user) {
+      await LoggerService.info("Unauthorized get participants request", {
+        authError: authError?.message,
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          message: "Authentication required",
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Step 2: Validate path parameter
     const validationResult = drawIdParamSchema.safeParse(params);
 
     if (!validationResult.success) {
@@ -52,9 +71,9 @@ export const GET: APIRoute = async ({ params, locals }) => {
 
     const { drawId } = validationResult.data;
 
-    // Step 2: Initialize service and verify draw access
+    // Step 3: Initialize service and verify draw access
     const drawService = new DrawService(locals.supabase);
-    const draw = await drawService.getDrawByIdForAuthor(drawId, mockUserId);
+    const draw = await drawService.getDrawByIdForAuthor(drawId, user.id);
 
     if (!draw) {
       // Check if draw exists at all to differentiate 404 vs 403
@@ -76,7 +95,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
       // Draw exists but user is not author
       await LoggerService.warn("Forbidden access attempt to draw participants", {
         drawId,
-        userId: mockUserId,
+        userId: user.id,
       });
 
       return new Response(
@@ -91,10 +110,10 @@ export const GET: APIRoute = async ({ params, locals }) => {
       );
     }
 
-    // Step 3: Fetch participants
+    // Step 4: Fetch participants
     const participants = await drawService.getParticipantsByDrawId(drawId);
 
-    // Step 4: Check if matches exist for this draw
+    // Step 5: Check if matches exist for this draw
     const matchingService = new MatchingService(locals.supabase);
     const hasMatches = await matchingService.matchesExist(drawId);
 
@@ -104,7 +123,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
       hasMatches,
     });
 
-    // Step 5: Return success response with participants and match status
+    // Step 6: Return success response with participants and match status
     return new Response(
       JSON.stringify({
         participants,
