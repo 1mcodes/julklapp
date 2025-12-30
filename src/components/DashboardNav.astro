@@ -1,9 +1,13 @@
 ---
+import UserMenu from "./UserMenu";
+import type { AuthUser } from "../types";
+
 interface Props {
   activeTab?: "created" | "create";
+  user?: AuthUser | null;
 }
 
-const { activeTab = "created" } = Astro.props;
+const { activeTab = "created", user = null } = Astro.props;
 
 const tabs = [
   { id: "created", label: "Created Draws", href: "/dashboard/created" },
@@ -13,27 +17,36 @@ const tabs = [
 
 <nav class="border-b border-border bg-background" aria-label="Dashboard navigation">
   <div class="max-w-7xl mx-auto px-4">
-    <div class="flex space-x-8" role="tablist">
+    <div class="flex items-center justify-between">
+      <div class="flex space-x-8" role="tablist">
+        {
+          tabs.map((tab) => {
+            const isActive = tab.id === activeTab;
+            return (
+              <a
+                href={tab.href}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`${tab.id}-panel`}
+                class:list={[
+                  "py-4 px-1 border-b-2 font-medium text-sm transition-colors",
+                  isActive
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
+                ]}
+              >
+                {tab.label}
+              </a>
+            );
+          })
+        }
+      </div>
       {
-        tabs.map((tab) => {
-          const isActive = tab.id === activeTab;
-          return (
-            <a
-              href={tab.href}
-              role="tab"
-              aria-selected={isActive}
-              aria-controls={`${tab.id}-panel`}
-              class:list={[
-                "py-4 px-1 border-b-2 font-medium text-sm transition-colors",
-                isActive
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
-              ]}
-            >
-              {tab.label}
-            </a>
-          );
-        })
+        user && (
+          <div class="py-2">
+            <UserMenu client:load user={user} />
+          </div>
+        )
       }
     </div>
   </div>

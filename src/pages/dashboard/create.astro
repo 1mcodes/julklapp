@@ -1,9 +1,15 @@
 ---
 import DashboardLayout from "../../layouts/dashboard/DashboardLayout.astro";
 import DrawForm from "../../components/CreateDraw/DrawForm.tsx";
+import { requireAuth } from "../../lib/utils/auth.utils";
+
+export const prerender = false;
+
+// Require authentication
+const user = await requireAuth(Astro);
 ---
 
-<DashboardLayout title="Create New Draw" activeTab="create">
+<DashboardLayout title="Create New Draw" activeTab="create" user={user}>
   <div class="space-y-6">
     <div>
       <h1 class="text-3xl font-bold text-gray-900">Create New Draw</h1>

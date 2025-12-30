@@ -2,18 +2,20 @@
 import Layout from "../Layout.astro";
 import { Toaster } from "../../components/ui/sonner";
 import DashboardNav from "../../components/DashboardNav.astro";
+import type { AuthUser } from "../../types";
 
 interface Props {
   title?: string;
   activeTab?: "created" | "create";
+  user?: AuthUser | null;
 }
 
-const { title = "Dashboard", activeTab } = Astro.props;
+const { title = "Dashboard", activeTab, user = null } = Astro.props;
 ---
 
 <Layout title={title}>
   <div class="min-h-screen bg-muted/30">
-    {activeTab && <DashboardNav activeTab={activeTab} />}
+    {activeTab && <DashboardNav activeTab={activeTab} user={user} />}
     <div class="max-w-7xl mx-auto px-4 py-6">
       <slot />
     </div>
