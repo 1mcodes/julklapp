@@ -1,0 +1,24 @@
+---
+import DashboardLayout from "../../layouts/dashboard/DashboardLayout.astro";
+import { CreatedDrawsView } from "../../components/CreatedDraws";
+
+// TODO: Replace with actual authenticated user ID once auth is implemented
+const mockUserId = "00000000-0000-0000-0000-000000000000";
+
+// TODO: Implement proper authentication check
+// const { data: { user }, error } = await Astro.locals.supabase.auth.getUser();
+// if (error || !user) {
+//   return Astro.redirect('/login?redirect=/dashboard/created');
+// }
+---
+
+<DashboardLayout title="Created Draws" activeTab="created">
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-3xl font-bold text-foreground">Your Created Draws</h1>
+      <p class="mt-2 text-muted-foreground">View and manage all your Secret Santa draws.</p>
+    </div>
+
+    <CreatedDrawsView client:load isActive={true} userId={mockUserId} />
+  </div>
+</DashboardLayout>

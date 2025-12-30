@@ -26,7 +26,10 @@ const DrawForm: React.FC = () => {
         description: "You can now share the draw link with participants.",
       });
 
-      // TODO: Navigate to dashboard/created or show success page
+      // Navigate to created draws with success indicator
+      setTimeout(() => {
+        window.location.href = "/dashboard/created?success=true";
+      }, 1500);
     }
   };
 

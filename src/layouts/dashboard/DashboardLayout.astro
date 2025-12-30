@@ -1,17 +1,19 @@
 ---
 import Layout from "../Layout.astro";
 import { Toaster } from "../../components/ui/sonner";
+import DashboardNav from "../../components/DashboardNav.astro";
 
 interface Props {
   title?: string;
+  activeTab?: "created" | "create";
 }
 
-const { title = "Dashboard" } = Astro.props;
+const { title = "Dashboard", activeTab } = Astro.props;
 ---
 
 <Layout title={title}>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Tab Navigation would go here -->
+  <div class="min-h-screen bg-muted/30">
+    {activeTab && <DashboardNav activeTab={activeTab} />}
     <div class="max-w-7xl mx-auto px-4 py-6">
       <slot />
     </div>

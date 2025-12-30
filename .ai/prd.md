@@ -112,6 +112,22 @@ Out of scope:
   - Given author identity, when querying draws, then only their draws are returned.
   - Given participant identity, when querying match results, then only their assignment is returned.
 
+- ID: US-012
+  Title: View created draws on default page
+  Description: As an author, I want to see a list of all draws I have created when I first access the application so that I can easily manage and track my events.
+  Acceptance Criteria:
+  - Given I am logged in as an author, when I access the default application page, then I see a list of all draws I have created.
+  - Given no draws exist, when I access the default page, then I see an empty state with a call-to-action to create a new draw.
+  - Given multiple draws exist, when I view the list, then draws are displayed with relevant information (e.g., draw name, date created, number of participants).
+
+- ID: US-013
+  Title: Redirect to draw participants page after creation
+  Description: As an author, after successfully creating a draw, I want to be redirected to the draw participants page so that I can immediately view or manage the event details.
+  Acceptance Criteria:
+  - Given a draw is successfully created, when the creation process completes, then I am automatically redirected to the draw participants page.
+  - Given the redirect occurs, when I arrive at the participants page, then I see confirmation of successful draw creation.
+  - Given the redirect fails, when an error occurs, then I see an error message with an option to manually navigate to the draw.
+
 ## 6. Success Metrics
 - Every participant has exactly one distinct match (100% match rate).
 - Participants successfully log in and view results in at least 95% of attempts.

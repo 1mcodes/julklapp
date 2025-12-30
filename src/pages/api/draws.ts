@@ -8,6 +8,72 @@ import type { CreateDrawCommand } from "../../types";
 export const prerender = false;
 
 /**
+ * GET /api/draws
+ * Retrieves all draws created by the authenticated user.
+ *
+ * Requires authentication. Returns list of draws sorted by created_at descending.
+ *
+ * Responses:
+ * - 200 OK: Array of DrawDTO
+ * - 401 Unauthorized: Missing or invalid authentication
+ * - 500 Internal Server Error: Database or unexpected errors
+ */
+export const GET: APIRoute = async ({ locals }) => {
+  try {
+    // TODO: Replace with actual authenticated user once auth is implemented
+    const mockUserId = "00000000-0000-0000-0000-000000000000";
+
+    // Step 1: Verify authentication (mocked for development)
+    // const {
+    //   data: { user },
+    //   error: authError,
+    // } = await locals.supabase.auth.getUser();
+
+    // if (authError || !user) {
+    //   await LoggerService.info("Unauthorized list draws request", {
+    //     authError: authError?.message,
+    //   });
+
+    //   return new Response(
+    //     JSON.stringify({
+    //       error: "Unauthorized",
+    //       message: "Authentication required",
+    //     }),
+    //     {
+    //       status: 401,
+    //       headers: { "Content-Type": "application/json" },
+    //     }
+    //   );
+    // }
+
+    // Step 2: Fetch draws using service
+    const drawService = new DrawService(locals.supabase);
+    const draws = await drawService.getDrawsByAuthor(mockUserId);
+
+    // Step 3: Return success response
+    return new Response(JSON.stringify(draws), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    await LoggerService.error("Unexpected error in list draws endpoint", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    return new Response(
+      JSON.stringify({
+        error: "Internal Server Error",
+        message: "Failed to retrieve draws",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+};
+
+/**
  * POST /api/draws
  * Creates a new draw with participants.
  *

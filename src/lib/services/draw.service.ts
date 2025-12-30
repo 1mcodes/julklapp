@@ -148,4 +148,29 @@ export class DrawService {
 
     return data ?? [];
   }
+
+  /**
+   * Retrieves all draws created by a specific author.
+   *
+   * @param authorId - The ID of the draw author
+   * @returns Array of DrawDTO sorted by created_at descending
+   * @throws Error if database query fails
+   */
+  async getDrawsByAuthor(authorId: string): Promise<DrawDTO[]> {
+    const { data, error } = await this.supabase
+      .from("draws")
+      .select("id, name, created_at")
+      .eq("author_id", authorId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      await LoggerService.error("Failed to fetch draws for author", {
+        authorId,
+        error,
+      });
+      throw new Error("Failed to fetch draws");
+    }
+
+    return data ?? [];
+  }
 }

@@ -250,4 +250,117 @@ describe("DrawService", () => {
       expect(mockEq).toHaveBeenCalledWith("id", mockDrawId);
     });
   });
+
+  describe("getDrawsByAuthor", () => {
+    const mockAuthorId = "user-123";
+
+    it("should successfully fetch draws for an author", async () => {
+      const mockDraws = [
+        {
+          id: "draw-1",
+          name: "Christmas 2024",
+          created_at: "2024-12-01T00:00:00.000Z",
+        },
+        {
+          id: "draw-2",
+          name: "Birthday Party",
+          created_at: "2024-11-15T00:00:00.000Z",
+        },
+      ];
+
+      const mockOrder = vi.fn().mockResolvedValue({
+        data: mockDraws,
+        error: null,
+      });
+
+      const mockEq = vi.fn().mockReturnValue({
+        order: mockOrder,
+      });
+
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: mockEq,
+      });
+
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      });
+
+      const result = await drawService.getDrawsByAuthor(mockAuthorId);
+
+      expect(result).toEqual(mockDraws);
+      expect(mockSupabase.from).toHaveBeenCalledWith("draws");
+      expect(mockSelect).toHaveBeenCalledWith("id, name, created_at");
+      expect(mockEq).toHaveBeenCalledWith("author_id", mockAuthorId);
+      expect(mockOrder).toHaveBeenCalledWith("created_at", { ascending: false });
+    });
+
+    it("should return empty array when author has no draws", async () => {
+      const mockOrder = vi.fn().mockResolvedValue({
+        data: [],
+        error: null,
+      });
+
+      const mockEq = vi.fn().mockReturnValue({
+        order: mockOrder,
+      });
+
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: mockEq,
+      });
+
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      });
+
+      const result = await drawService.getDrawsByAuthor(mockAuthorId);
+
+      expect(result).toEqual([]);
+    });
+
+    it("should return empty array when data is null", async () => {
+      const mockOrder = vi.fn().mockResolvedValue({
+        data: null,
+        error: null,
+      });
+
+      const mockEq = vi.fn().mockReturnValue({
+        order: mockOrder,
+      });
+
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: mockEq,
+      });
+
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      });
+
+      const result = await drawService.getDrawsByAuthor(mockAuthorId);
+
+      expect(result).toEqual([]);
+    });
+
+    it("should throw error when database query fails", async () => {
+      const mockError = { message: "Database connection error" };
+
+      const mockOrder = vi.fn().mockResolvedValue({
+        data: null,
+        error: mockError,
+      });
+
+      const mockEq = vi.fn().mockReturnValue({
+        order: mockOrder,
+      });
+
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: mockEq,
+      });
+
+      mockSupabase.from.mockReturnValue({
+        select: mockSelect,
+      });
+
+      await expect(drawService.getDrawsByAuthor(mockAuthorId)).rejects.toThrow("Failed to fetch draws");
+    });
+  });
 });
