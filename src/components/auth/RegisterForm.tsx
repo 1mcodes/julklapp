@@ -95,38 +95,51 @@ const RegisterForm: React.FC = () => {
     setErrors({});
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     email: email.trim().toLowerCase(),
-      //     password,
-      //     confirmPassword,
-      //     agreedToTerms,
-      //   }),
-      // });
+      // Call registration API endpoint
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+          confirmPassword,
+          agreedToTerms,
+        }),
+      });
 
-      // const data = await response.json();
+      const data = await response.json();
 
-      // if (!response.ok) {
-      //   throw new Error(data.message || 'Registration failed');
-      // }
+      if (!response.ok) {
+        // Handle specific errors
+        if (data.details) {
+          // Map field-level validation errors
+          const fieldErrors: { email?: string; password?: string; confirmPassword?: string; terms?: string } = {};
+          data.details.forEach((err: { field: string; message: string }) => {
+            if (err.field === "email") fieldErrors.email = err.message;
+            if (err.field === "password") fieldErrors.password = err.message;
+            if (err.field === "confirmPassword") fieldErrors.confirmPassword = err.message;
+            if (err.field === "agreedToTerms") fieldErrors.terms = err.message;
+          });
+          setErrors(fieldErrors);
+        }
+        throw new Error(data.message || "Registration failed");
+      }
 
-      // Simulate API call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Show success message
+      toast.success(data.message || "Account created successfully!");
 
-      toast.success("Account created successfully!");
-
-      // Redirect to dashboard
+      // Redirect to dashboard after short delay
       setTimeout(() => {
         window.location.href = "/dashboard/created";
       }, 500);
     } catch (error) {
-      setErrors({
-        form: error instanceof Error ? error.message : "Registration failed. Please try again.",
-      });
-      toast.error("Registration failed. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Registration failed. Please try again.";
+      toast.error(errorMessage);
+
+      // Only set form error if we don't have field-level errors
+      if (!errors.email && !errors.password && !errors.confirmPassword && !errors.terms) {
+        setErrors({ form: errorMessage });
+      }
     } finally {
       setIsSubmitting(false);
     }

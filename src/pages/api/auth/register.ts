@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
-import { loginSchema } from "../../../lib/schemas/auth.schema";
+import { registerSchema } from "../../../lib/schemas/auth.schema";
 import { mapAuthError } from "../../../lib/services/auth-error.service";
 
 /**
- * POST /api/auth/login
+ * POST /api/auth/register
  *
- * Authenticates a user and creates a session.
- * Requires email confirmation before login is allowed.
+ * Creates a new user account with email verification required.
+ * Users must confirm their email before they can log in.
  */
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
@@ -25,7 +25,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // Validate with Zod
-    const validationResult = loginSchema.safeParse(body);
+    const validationResult = registerSchema.safeParse(body);
 
     if (!validationResult.success) {
       const errors = validationResult.error.errors.map((err) => ({
@@ -48,52 +48,59 @@ export const POST: APIRoute = async ({ request, locals }) => {
     // Normalize email
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Sign in with Supabase Auth
-    const { data, error } = await locals.supabase.auth.signInWithPassword({
+    // Sign up with Supabase Auth
+    // Session is created immediately upon successful registration
+    const { data, error } = await locals.supabase.auth.signUp({
       email: normalizedEmail,
       password,
+      options: {
+        // Redirect URL after email confirmation (if enabled in Supabase)
+        emailRedirectTo: `${new URL(request.url).origin}/dashboard/created`,
+      },
     });
 
     if (error) {
-      const statusCode = error.status || 401;
+      const statusCode = error.status || 500;
       const message = mapAuthError(error);
 
       return new Response(
         JSON.stringify({
-          error: error.name || "Authentication Error",
+          error: error.name || "Registration Error",
           message,
         }),
         { status: statusCode, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Check if user and session were created successfully
-    if (!data.user || !data.session) {
+    // Check if user was created successfully
+    if (!data.user) {
       return new Response(
         JSON.stringify({
-          error: "Authentication Error",
-          message: "Failed to create session",
+          error: "Registration Error",
+          message: "Failed to create user account",
         }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Success response - cookies are automatically set by @supabase/ssr middleware
+    // Success response
+    // Session is created and user can access the application
     return new Response(
       JSON.stringify({
-        message: "Logged in successfully",
+        message: "Account created successfully",
         user: {
           id: data.user.id,
           email: data.user.email,
           emailConfirmed: !!data.user.email_confirmed_at,
         },
+        session: data.session ? true : false,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 201, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
     // Unexpected error handling
     // eslint-disable-next-line no-console
-    console.error("Unexpected error in login endpoint:", error);
+    console.error("Unexpected error in registration endpoint:", error);
 
     return new Response(
       JSON.stringify({

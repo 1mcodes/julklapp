@@ -1,13 +1,20 @@
 import type { AstroGlobal } from "astro";
 
-import type { AuthUser } from "../../types";
+/**
+ * Authenticated user information
+ */
+export interface AuthUser {
+  id: string;
+  email: string;
+  emailConfirmed: boolean;
+}
 
 /**
  * Protects a route by requiring authentication.
  * Redirects to login if not authenticated.
  *
  * @param Astro - Astro global object
- * @returns Authenticated user
+ * @returns Authenticated user or redirects to login
  */
 export async function requireAuth(Astro: AstroGlobal): Promise<AuthUser> {
   const {
@@ -23,7 +30,7 @@ export async function requireAuth(Astro: AstroGlobal): Promise<AuthUser> {
   return {
     id: user.id,
     email: user.email!,
-    name: user.user_metadata?.name,
+    emailConfirmed: !!user.email_confirmed_at,
   };
 }
 
@@ -46,6 +53,6 @@ export async function getSession(Astro: AstroGlobal): Promise<AuthUser | null> {
   return {
     id: user.id,
     email: user.email!,
-    name: user.user_metadata?.name,
+    emailConfirmed: !!user.email_confirmed_at,
   };
 }

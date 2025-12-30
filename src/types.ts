@@ -107,7 +107,7 @@ export interface ApiErrorResponse {
 export interface AuthUser {
   id: string;
   email: string;
-  name?: string;
+  emailConfirmed: boolean;
 }
 
 /**
@@ -123,7 +123,7 @@ export interface SessionInfo {
 /**
  * Login request DTO
  */
-export interface LoginDTO {
+export interface LoginRequestDTO {
   email: string;
   password: string;
 }
@@ -131,7 +131,7 @@ export interface LoginDTO {
 /**
  * Register request DTO
  */
-export interface RegisterDTO {
+export interface RegisterRequestDTO {
   email: string;
   password: string;
   confirmPassword: string;
@@ -141,22 +141,43 @@ export interface RegisterDTO {
 /**
  * Forgot password request DTO
  */
-export interface ForgotPasswordDTO {
+export interface ForgotPasswordRequestDTO {
   email: string;
 }
 
 /**
  * Reset password request DTO
  */
-export interface ResetPasswordDTO {
+export interface ResetPasswordRequestDTO {
   password: string;
   confirmPassword: string;
   token: string;
 }
 
 /**
+ * Set password request DTO (for auto-provisioned users)
+ */
+export interface SetPasswordRequestDTO {
+  password: string;
+  confirmPassword: string;
+}
+
+/**
  * Authentication response DTO
  */
 export interface AuthResponseDTO {
+  message: string;
   user: AuthUser;
+}
+
+/**
+ * Registration response DTO
+ */
+export interface RegisterResponseDTO {
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    emailConfirmed: boolean;
+  };
 }
