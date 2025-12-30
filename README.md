@@ -53,7 +53,7 @@ JulklApp solves the hassle of organizing Secret Santa by providing:
 
 - Node.js 22.14.0 (see `.nvmrc`)  
 - Git  
-- A Supabase project (URL and ANON key)  
+- A Supabase project (URL, ANON key, and SERVICE ROLE key)  
 - OpenRouter API key  
 
 ### Setup
@@ -68,8 +68,10 @@ npm install
 
 # Create a .env file in the project root with:
 # SUPABASE_URL=your-supabase-url
-# SUPABASE_ANON_KEY=your-supabase-anon-key
+# SUPABASE_KEY=your-supabase-anon-key
+# SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 # OPENROUTER_API_KEY=your-openrouter-api-key
+# PUBLIC_SITE_URL=http://localhost:4321 (or your production URL)
 
 # Start the development server
 npm run dev

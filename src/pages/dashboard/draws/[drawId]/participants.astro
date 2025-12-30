@@ -2,6 +2,12 @@
 import DashboardLayout from "../../../../layouts/dashboard/DashboardLayout.astro";
 import DrawParticipantsView from "../../../../components/DrawParticipants/DrawParticipantsView";
 import { DrawService } from "../../../../lib/services/draw.service";
+import { requireAuth } from "../../../../lib/utils/auth.utils";
+
+export const prerender = false;
+
+// Require authentication
+const user = await requireAuth(Astro);
 
 const { drawId } = Astro.params;
 
@@ -10,12 +16,9 @@ if (!drawId) {
   return Astro.redirect("/dashboard");
 }
 
-// TODO: Replace with actual authenticated user ID once auth is implemented
-const mockUserId = "00000000-0000-0000-0000-000000000000";
-
 // Fetch draw details to get the name
 const drawService = new DrawService(Astro.locals.supabase);
-const draw = await drawService.getDrawByIdForAuthor(drawId, mockUserId);
+const draw = await drawService.getDrawByIdForAuthor(drawId, user.id);
 
 // If draw not found or user is not author, redirect to dashboard
 if (!draw) {
@@ -23,6 +26,6 @@ if (!draw) {
 }
 ---
 
-<DashboardLayout title={`${draw.name} - Participants`}>
+<DashboardLayout title={`${draw.name} - Participants`} activeTab="created" user={user}>
   <DrawParticipantsView client:load drawId={drawId} drawName={draw.name} />
 </DashboardLayout>
