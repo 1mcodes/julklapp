@@ -57,32 +57,22 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard/created
     setErrors({});
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
-      // });
+      // Call login API endpoint
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+      });
 
-      // const data = await response.json();
+      const data = await response.json();
 
-      // if (!response.ok) {
-      //   throw new Error(data.message || 'Login failed');
-      // }
-
-      // Simulate API call for now
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
 
       toast.success("Logged in successfully!");
 
-      // TODO: Handle requiresPasswordSetup flag
-      // if (data.requiresPasswordSetup) {
-      //   window.location.href = '/set-password';
-      // } else {
-      //   window.location.href = redirectUrl;
-      // }
-
-      // For now, just redirect
+      // Redirect to intended destination
       setTimeout(() => {
         window.location.href = redirectUrl;
       }, 500);
@@ -97,7 +87,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard/created
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} method="POST" className="space-y-6">
       {/* Email Field */}
       <div className="space-y-2">
         <label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -106,6 +96,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard/created
         <Input
           ref={emailRef}
           id="email"
+          name="email"
           type="email"
           value={email}
           onChange={(e) => {
@@ -138,6 +129,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard/created
         </label>
         <Input
           id="password"
+          name="password"
           type="password"
           value={password}
           onChange={(e) => {
@@ -194,7 +186,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard/created
 
       {/* Registration Link */}
       <div className="text-center text-sm text-gray-600">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <a href="/register" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
           Register
         </a>

@@ -96,4 +96,67 @@ export interface PaginationParams {
 export interface ApiErrorResponse {
   error: string;
   message: string;
+  details?: unknown;
+}
+
+// Auth-related types
+
+/**
+ * Authenticated user information
+ */
+export interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
+}
+
+/**
+ * Session information
+ */
+export interface SessionInfo {
+  user: AuthUser | null;
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+}
+
+/**
+ * Login request DTO
+ */
+export interface LoginDTO {
+  email: string;
+  password: string;
+}
+
+/**
+ * Register request DTO
+ */
+export interface RegisterDTO {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  agreedToTerms: boolean;
+}
+
+/**
+ * Forgot password request DTO
+ */
+export interface ForgotPasswordDTO {
+  email: string;
+}
+
+/**
+ * Reset password request DTO
+ */
+export interface ResetPasswordDTO {
+  password: string;
+  confirmPassword: string;
+  token: string;
+}
+
+/**
+ * Authentication response DTO
+ */
+export interface AuthResponseDTO {
+  user: AuthUser;
 }

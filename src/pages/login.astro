@@ -2,14 +2,48 @@
 import Layout from "../layouts/Layout.astro";
 import LoginForm from "../components/auth/LoginForm";
 import { Toaster } from "sonner";
+import { loginSchema } from "../lib/schemas/auth.schema";
+import { mapAuthError } from "../lib/services/auth-error.service";
 
 export const prerender = false;
 
-// TODO: Add server-side session check when auth is implemented
-// const { data: { session } } = await Astro.locals.supabase.auth.getSession();
-// if (session) {
-//   return Astro.redirect('/dashboard/created');
-// }
+// Server-side session check
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
+if (session) {
+  return Astro.redirect("/dashboard/created");
+}
+
+// Handle progressive enhancement (native form POST)
+let formError: string | null = null;
+
+if (Astro.request.method === "POST") {
+  const formData = await Astro.request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  // Validate form data
+  const validationResult = loginSchema.safeParse({ email, password });
+
+  if (!validationResult.success) {
+    formError = validationResult.error.errors[0]?.message || "Invalid form data";
+  } else {
+    // Attempt authentication
+    const { data, error: authError } = await Astro.locals.supabase.auth.signInWithPassword({
+      email: validationResult.data.email.trim().toLowerCase(),
+      password: validationResult.data.password,
+    });
+
+    if (authError || !data.user) {
+      formError = authError ? mapAuthError(authError) : "Authentication failed";
+    } else {
+      // Success - redirect to intended destination
+      const redirectUrl = Astro.url.searchParams.get("redirect") || "/dashboard/created";
+      return Astro.redirect(redirectUrl);
+    }
+  }
+}
 
 const redirectUrl = Astro.url.searchParams.get("redirect") || "/dashboard/created";
 ---
@@ -25,6 +59,15 @@ const redirectUrl = Astro.url.searchParams.get("redirect") || "/dashboard/create
           <p class="text-sm text-gray-600">Log in to your account</p>
         </div>
 
+        {/* Server-side error message */}
+        {
+          formError && (
+            <div class="rounded-md bg-red-50 p-4" role="alert">
+              <p class="text-sm text-red-800">{formError}</p>
+            </div>
+          )
+        }
+
         {/* Login Form */}
         <LoginForm client:load redirectUrl={redirectUrl} />
       </div>
@@ -34,4 +77,3 @@ const redirectUrl = Astro.url.searchParams.get("redirect") || "/dashboard/create
   {/* Toast notifications */}
   <Toaster client:load position="top-center" />
 </Layout>
-
