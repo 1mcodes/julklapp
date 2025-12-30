@@ -1,0 +1,37 @@
+---
+import Layout from "../layouts/Layout.astro";
+import LoginForm from "../components/auth/LoginForm";
+import { Toaster } from "sonner";
+
+export const prerender = false;
+
+// TODO: Add server-side session check when auth is implemented
+// const { data: { session } } = await Astro.locals.supabase.auth.getSession();
+// if (session) {
+//   return Astro.redirect('/dashboard/created');
+// }
+
+const redirectUrl = Astro.url.searchParams.get("redirect") || "/dashboard/created";
+---
+
+<Layout title="Log In - JulklApp">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      {/* Card Container */}
+      <div class="bg-white rounded-lg shadow-lg p-8 space-y-6">
+        {/* Header */}
+        <div class="text-center space-y-2">
+          <h1 class="text-3xl font-bold text-gray-900">JulklApp</h1>
+          <p class="text-sm text-gray-600">Log in to your account</p>
+        </div>
+
+        {/* Login Form */}
+        <LoginForm client:load redirectUrl={redirectUrl} />
+      </div>
+    </div>
+  </div>
+
+  {/* Toast notifications */}
+  <Toaster client:load position="top-center" />
+</Layout>
+
