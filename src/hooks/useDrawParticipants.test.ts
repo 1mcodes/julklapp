@@ -713,6 +713,7 @@ describe("useDrawParticipants", () => {
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
+        expect(result.current.state.matchingError).not.toBeNull();
       });
 
       expect(result.current.state.hasMatches).toBe(false);
@@ -761,6 +762,8 @@ describe("useDrawParticipants", () => {
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
+        expect(result.current.state.hasMatches).toBe(true);
+        expect(result.current.state.matchingError).toBe(null);
       });
 
       expect(result.current.state.matchingError).toBe(null);

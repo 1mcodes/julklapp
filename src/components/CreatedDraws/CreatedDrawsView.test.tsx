@@ -33,8 +33,11 @@ describe("CreatedDrawsView", () => {
 
     render(<CreatedDrawsView isActive={true} userId="test-user" />);
 
-    expect(screen.getByRole("status")).toBeInTheDocument();
-    expect(screen.getByText("Loading draws...")).toBeInTheDocument();
+    const statusElement = screen.getByRole("status");
+    expect(statusElement).toBeInTheDocument();
+    // Verify the loading text is present (using getAllByText since there's both sr-only and visible text)
+    const loadingTexts = screen.getAllByText("Loading draws...");
+    expect(loadingTexts.length).toBe(2); // One for screen readers, one visible
   });
 
   it("should render error state when error occurs", () => {
