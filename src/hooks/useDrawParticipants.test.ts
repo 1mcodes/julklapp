@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { toast } from "sonner";
 import { useDrawParticipants } from "./useDrawParticipants";
 import type { ParticipantDTO, ParticipantsWithMetadataDTO, ApiErrorResponse, MessageDTO } from "../types";
@@ -355,7 +355,9 @@ describe("useDrawParticipants", () => {
       });
 
       // Trigger refetch
-      await result.current.actions.refetch();
+      await act(async () => {
+        await result.current.actions.refetch();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isLoading).toBe(false);
@@ -566,7 +568,9 @@ describe("useDrawParticipants", () => {
         json: async () => mockError,
       });
 
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
@@ -603,7 +607,9 @@ describe("useDrawParticipants", () => {
         json: async () => mockError,
       });
 
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
@@ -681,7 +687,9 @@ describe("useDrawParticipants", () => {
         json: async () => mockError,
       });
 
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
@@ -709,7 +717,9 @@ describe("useDrawParticipants", () => {
       // Mock network error
       fetchMock.mockRejectedValueOnce(new Error("Network error"));
 
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
@@ -745,7 +755,9 @@ describe("useDrawParticipants", () => {
         json: async () => ({ error: "Server Error", message: "Failed" }),
       });
 
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.matchingError).not.toBe(null);
@@ -758,12 +770,585 @@ describe("useDrawParticipants", () => {
         json: async () => ({ message: "Matches created successfully" }),
       });
 
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
         expect(result.current.state.hasMatches).toBe(true);
         expect(result.current.state.matchingError).toBe(null);
+      });
+
+      expect(result.current.state.matchingError).toBe(null);
+      expect(result.current.state.hasMatches).toBe(true);
+    });
+
+    it("should handle malformed JSON response on matching", async () => {
+      // Initial fetch
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: false }),
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      // Mock malformed JSON response
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => {
+          throw new Error("Invalid JSON");
+        },
+      });
+
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
+
+      await waitFor(() => {
+        expect(result.current.state.isMatching).toBe(false);
+      });
+
+      expect(result.current.state.matchingError).toEqual({
+        error: "Unknown Error",
+        message: "An unexpected error occurred",
+      });
+      expect(toast.error).toHaveBeenCalledWith("An unexpected error occurred");
+    });
+
+    it("should not update hasMatches for non-'already generated' errors", async () => {
+      // Initial fetch
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: false }),
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      expect(result.current.state.hasMatches).toBe(false);
+
+      // Mock error that doesn't indicate matches already exist
+      const mockError: ApiErrorResponse = {
+        error: "Bad Request",
+        message: "Some other validation error",
+      };
+
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: async () => mockError,
+      });
+
+      await result.current.actions.executeMatching();
+
+      await waitFor(() => {
+        expect(result.current.state.isMatching).toBe(false);
+        expect(result.current.state.matchingError).not.toBe(null);
+      });
+
+      // hasMatches should remain false
+      expect(result.current.state.hasMatches).toBe(false);
+      expect(result.current.state.matchingError).toEqual(mockError);
+    });
+
+    it("should preserve participants data when matching fails", async () => {
+      const mockParticipants: ParticipantDTO[] = [
+        {
+          id: "p1",
+          name: "John",
+          surname: "Doe",
+          email: "john.doe@example.com",
+          gift_preferences: "Books",
+        },
+      ];
+
+      // Initial fetch - successful with participants
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: mockParticipants, has_matches: false }),
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      expect(result.current.state.participants).toEqual(mockParticipants);
+
+      // Matching fails
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: "Server Error", message: "Failed to generate matches" }),
+      });
+
+      await result.current.actions.executeMatching();
+
+      await waitFor(() => {
+        expect(result.current.state.isMatching).toBe(false);
+      });
+
+      // Participants should still be there
+      expect(result.current.state.participants).toEqual(mockParticipants);
+      expect(result.current.state.matchingError).not.toBe(null);
+    });
+  });
+
+  describe("edge cases and error boundaries", () => {
+    it("should handle malformed JSON on successful fetch", async () => {
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new Error("Invalid JSON");
+        },
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      // Should treat as network error since we couldn't parse the response
+      expect(result.current.state.participants).toEqual([]);
+      expect(result.current.state.error).toEqual({
+        error: "Network Error",
+        message: "Unable to connect. Please check your internet connection and try again.",
+      });
+      expect(result.current.state.httpStatus).toBe(null);
+    });
+
+    it("should handle multiple rapid refetch calls", async () => {
+      const mockParticipants: ParticipantDTO[] = [
+        {
+          id: "p1",
+          name: "John",
+          surname: "Doe",
+          email: "john.doe@example.com",
+          gift_preferences: "Books",
+        },
+      ];
+
+      // Initial fetch
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: mockParticipants, has_matches: false }),
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      // Mock multiple rapid responses
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: mockParticipants, has_matches: false }),
+      });
+
+      // Call refetch multiple times rapidly
+      const promises = [
+        result.current.actions.refetch(),
+        result.current.actions.refetch(),
+        result.current.actions.refetch(),
+      ];
+
+      await Promise.all(promises);
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      // Should have called fetch 4 times total (1 initial + 3 refetch)
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+      expect(result.current.state.participants).toEqual(mockParticipants);
+      expect(result.current.state.error).toBe(null);
+    });
+
+    it("should handle special characters in drawId", async () => {
+      const specialDrawId = "550e8400-e29b-41d4-a716-446655440000";
+
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: false }),
+      });
+
+      renderHook(() => useDrawParticipants(specialDrawId));
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(`/api/draws/${specialDrawId}/participants`);
+      });
+    });
+
+    it("should not reset hasMatches when fetch errors occur", async () => {
+      // Initial successful fetch with matches
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: true }),
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      expect(result.current.state.hasMatches).toBe(true);
+
+      // Subsequent refetch fails
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: "Server Error", message: "Failed" }),
+      });
+
+      await act(async () => {
+        await result.current.actions.refetch();
+      });
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      // hasMatches should be reset because we got an error, not updated data
+      expect(result.current.state.hasMatches).toBe(true);
+      expect(result.current.state.error).not.toBe(null);
+    });
+
+    it("should handle empty string drawId", async () => {
+      const emptyDrawId = "";
+
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: "Bad Request", message: "Invalid draw ID" }),
+      });
+
+      renderHook(() => useDrawParticipants(emptyDrawId));
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(`/api/draws/${emptyDrawId}/participants`);
+      });
+    });
+
+    it("should preserve error state across refetch attempts until success", async () => {
+      const mockError: ApiErrorResponse = {
+        error: "Server Error",
+        message: "Database connection failed",
+      };
+
+      // Initial fetch fails
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => mockError,
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      expect(result.current.state.error).toEqual(mockError);
+
+      // Second fetch also fails
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => mockError,
+      });
+
+      await act(async () => {
+        await result.current.actions.refetch();
+      });
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      expect(result.current.state.error).toEqual(mockError);
+
+      // Third fetch succeeds
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: false }),
+      });
+
+      await act(async () => {
+        await result.current.actions.refetch();
+      });
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      expect(result.current.state.error).toBe(null);
+      expect(result.current.state.httpStatus).toBe(200);
+    });
+  });
+
+  describe("callback stability", () => {
+    it("should maintain stable refetch function reference", () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: false }),
+      });
+
+      const { result, rerender } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      const firstRefetch = result.current.actions.refetch;
+
+      rerender();
+
+      const secondRefetch = result.current.actions.refetch;
+
+      expect(firstRefetch).toBe(secondRefetch);
+    });
+
+    it("should maintain stable executeMatching function reference", () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: false }),
+      });
+
+      const { result, rerender } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      const firstExecuteMatching = result.current.actions.executeMatching;
+
+      rerender();
+
+      const secondExecuteMatching = result.current.actions.executeMatching;
+
+      expect(firstExecuteMatching).toBe(secondExecuteMatching);
+    });
+
+    it("should update fetchParticipants when drawId changes", async () => {
+      const drawId1 = "draw-1";
+      const drawId2 = "draw-2";
+
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: false }),
+      });
+
+      const { rerender } = renderHook(({ id }) => useDrawParticipants(id), {
+        initialProps: { id: drawId1 },
+      });
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(`/api/draws/${drawId1}/participants`);
+      });
+
+      // Clear mocks to count new calls
+      vi.clearAllMocks();
+
+      rerender({ id: drawId2 });
+
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(`/api/draws/${drawId2}/participants`);
+      });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("concurrent operations", () => {
+    it("should handle concurrent matching and refetch operations", async () => {
+      const mockParticipants: ParticipantDTO[] = [
+        {
+          id: "p1",
+          name: "John",
+          surname: "Doe",
+          email: "john.doe@example.com",
+          gift_preferences: "Books",
+        },
+      ];
+
+      // Initial fetch
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: mockParticipants, has_matches: false }),
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      // Mock refetch response
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: mockParticipants, has_matches: false }),
+      });
+
+      // Mock matching response
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ message: "Matches created successfully" }),
+      });
+
+      // Execute both operations concurrently
+      await Promise.all([result.current.actions.refetch(), result.current.actions.executeMatching()]);
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+        expect(result.current.state.isMatching).toBe(false);
+      });
+
+      // Both operations should have completed
+      expect(fetchMock).toHaveBeenCalledTimes(3); // initial + refetch + matching
+    });
+
+    it("should handle multiple rapid executeMatching calls", async () => {
+      // Initial fetch
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: false }),
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      // Mock multiple matching responses - all succeed
+      fetchMock.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ message: "Matches created successfully" }),
+      });
+
+      // Execute multiple matching operations
+      const promises = [
+        result.current.actions.executeMatching(),
+        result.current.actions.executeMatching(),
+        result.current.actions.executeMatching(),
+      ];
+
+      await Promise.all(promises);
+
+      await waitFor(() => {
+        expect(result.current.state.isMatching).toBe(false);
+        expect(result.current.state.hasMatches).toBe(true);
+      });
+
+      // Should have attempted all three operations
+      expect(fetchMock).toHaveBeenCalledTimes(4); // 1 initial + 3 matching
+      expect(result.current.state.hasMatches).toBe(true);
+    });
+  });
+
+  describe("state transitions", () => {
+    it("should have correct state during full fetch lifecycle", async () => {
+      const states: { isLoading: boolean; error: ApiErrorResponse | null }[] = [];
+
+      fetchMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve({
+                ok: true,
+                status: 200,
+                json: async () => ({ participants: [], has_matches: false }),
+              });
+            }, 50);
+          })
+      );
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      // Capture initial loading state
+      states.push({ isLoading: result.current.state.isLoading, error: result.current.state.error });
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      // Capture final state
+      states.push({ isLoading: result.current.state.isLoading, error: result.current.state.error });
+
+      expect(states[0]).toEqual({ isLoading: true, error: null });
+      expect(states[1]).toEqual({ isLoading: false, error: null });
+    });
+
+    it("should have correct state during full matching lifecycle", async () => {
+      let capturedMatchingState = false;
+
+      // Initial fetch
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ participants: [], has_matches: false }),
+      });
+
+      const { result } = renderHook(() => useDrawParticipants(mockDrawId));
+
+      await waitFor(() => {
+        expect(result.current.state.isLoading).toBe(false);
+      });
+
+      // Mock matching response with delay
+      fetchMock.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(() => {
+              resolve({
+                ok: true,
+                status: 200,
+                json: async () => ({ message: "Matches created successfully" }),
+              });
+            }, 50);
+          })
+      );
+
+      const matchingPromise = result.current.actions.executeMatching();
+
+      // Verify matching state is set
+      await waitFor(() => {
+        if (result.current.state.isMatching) {
+          capturedMatchingState = true;
+        }
+        expect(result.current.state.isMatching).toBe(true);
+      });
+
+      expect(capturedMatchingState).toBe(true);
+      expect(result.current.state.matchingError).toBe(null);
+
+      await matchingPromise;
+
+      // Verify final state
+      await waitFor(() => {
+        expect(result.current.state.isMatching).toBe(false);
       });
 
       expect(result.current.state.matchingError).toBe(null);
