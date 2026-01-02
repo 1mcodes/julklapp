@@ -7,6 +7,29 @@ export default defineConfig({
     environment: "jsdom",
     include: ["**/*.test.ts", "**/*.test.tsx"],
     setupFiles: ["./vitest.setup.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html", "lcov"],
+      exclude: [
+        "node_modules/**",
+        "dist/**",
+        "e2e/**",
+        "**/*.config.*",
+        "**/*.d.ts",
+        "**/types.ts",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "src/components/ui/**", // Shadcn/ui components
+        "public/**",
+        "src/assets/**",
+      ],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
+    },
   },
   resolve: {
     alias: {

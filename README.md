@@ -43,6 +43,12 @@ JulklApp solves the hassle of organizing Secret Santa by providing:
 **AI Integration**  
 - OpenRouter.ai – unified access to OpenAI, Anthropic, Google models; API key cost limits  
 
+**Testing**  
+- Vitest 4 – fast, ESM-native test runner with TypeScript support  
+- React Testing Library – user-centric component testing  
+- jsdom – DOM simulation for Node.js testing  
+- Playwright – end-to-end testing (planned for post-MVP)  
+
 **CI/CD & Hosting**  
 - GitHub Actions – build, lint, test pipelines  
 - DigitalOcean (Docker) – containerized deployment  
@@ -104,6 +110,15 @@ In the project directory, run:
 - **`npm run format`**  
   Format code with Prettier.  
 
+- **`npm run test`**  
+  Run all tests with Vitest.  
+
+- **`npm run test:watch`**  
+  Run tests in watch mode for development.  
+
+- **`npm run test:coverage`**  
+  Run tests and generate coverage report.  
+
 ## Project Scope
 
 ### In Scope
@@ -113,6 +128,7 @@ In the project directory, run:
 - AI-driven gift suggestions with retry logic and caching  
 - Row-level security policies in the database  
 - English UI with built-in i18n for future localization  
+- Comprehensive test coverage (80% minimum, 100% for core business logic)  
 
 ### Out of Scope
 

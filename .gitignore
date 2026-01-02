@@ -23,3 +23,10 @@ logs/
 
 # jetbrains setting folder
 .idea/
+
+# testing
+coverage/
+.vitest/
+playwright-report/
+test-results/
+screenshots/
