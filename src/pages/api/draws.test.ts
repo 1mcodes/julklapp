@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { GET, POST } from "./draws";
+import { GET } from "./draws";
 import type { APIContext } from "astro";
 
 // Create mock functions before mocking modules
@@ -37,14 +37,15 @@ describe("GET /api/draws", () => {
           auth: {
             getUser: vi.fn(),
           },
-        } as any,
+        },
       },
     };
   });
 
   it("should return 401 when user is not authenticated", async () => {
     // Mock no user
-    (mockContext.locals!.supabase.auth.getUser as any).mockResolvedValue({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mockContext.locals?.supabase?.auth?.getUser as any).mockResolvedValue({
       data: { user: null },
       error: null,
     });
@@ -61,7 +62,8 @@ describe("GET /api/draws", () => {
 
   it("should return 401 when authentication fails", async () => {
     // Mock auth error
-    (mockContext.locals!.supabase.auth.getUser as any).mockResolvedValue({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mockContext.locals?.supabase?.auth?.getUser as any).mockResolvedValue({
       data: { user: null },
       error: { message: "Invalid token" },
     });
@@ -92,7 +94,8 @@ describe("GET /api/draws", () => {
     ];
 
     // Mock authenticated user
-    (mockContext.locals!.supabase.auth.getUser as any).mockResolvedValue({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mockContext.locals?.supabase?.auth?.getUser as any).mockResolvedValue({
       data: { user: { id: mockUserId } },
       error: null,
     });
@@ -112,7 +115,8 @@ describe("GET /api/draws", () => {
     const mockUserId = "user-123";
 
     // Mock authenticated user
-    (mockContext.locals!.supabase.auth.getUser as any).mockResolvedValue({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mockContext.locals?.supabase?.auth?.getUser as any).mockResolvedValue({
       data: { user: { id: mockUserId } },
       error: null,
     });
@@ -131,7 +135,8 @@ describe("GET /api/draws", () => {
     const mockUserId = "user-123";
 
     // Mock authenticated user
-    (mockContext.locals!.supabase.auth.getUser as any).mockResolvedValue({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mockContext.locals?.supabase?.auth?.getUser as any).mockResolvedValue({
       data: { user: { id: mockUserId } },
       error: null,
     });
@@ -153,7 +158,8 @@ describe("GET /api/draws", () => {
     const mockUserId = "user-123";
 
     // Mock authenticated user
-    (mockContext.locals!.supabase.auth.getUser as any).mockResolvedValue({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mockContext.locals?.supabase?.auth?.getUser as any).mockResolvedValue({
       data: { user: { id: mockUserId } },
       error: null,
     });

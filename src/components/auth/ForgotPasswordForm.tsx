@@ -82,16 +82,11 @@ const ForgotPasswordForm: React.FC = () => {
           <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-4" aria-hidden="true" />
           <h3 className="text-lg font-semibold text-green-900 mb-2">Check Your Email</h3>
           <p className="text-sm text-green-800">
-            If an account exists with that email, you'll receive a password reset link shortly.
+            If an account exists with that email, you&apos;ll receive a password reset link shortly.
           </p>
         </div>
 
-        <Button
-          type="button"
-          onClick={() => (window.location.href = "/login")}
-          className="w-full"
-          variant="outline"
-        >
+        <Button type="button" onClick={() => (window.location.href = "/login")} className="w-full" variant="outline">
           Back to Login
         </Button>
       </div>
@@ -102,7 +97,7 @@ const ForgotPasswordForm: React.FC = () => {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Instructional Text */}
       <p className="text-sm text-gray-600">
-        Enter your email address and we'll send you a link to reset your password.
+        Enter your email address and we&apos;ll send you a link to reset your password.
       </p>
 
       {/* Email Field */}

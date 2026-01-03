@@ -70,7 +70,7 @@ function getRelativeTimeString(date: Date): string {
  * @param obj - The object to validate
  * @returns True if the object is a valid DrawDTO
  */
-function isValidDrawDTO(obj: any): obj is DrawDTO {
+function isValidDrawDTO(obj: unknown): obj is DrawDTO {
   return (
     typeof obj === "object" &&
     obj !== null &&

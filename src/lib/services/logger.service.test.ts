@@ -57,18 +57,13 @@ describe("LoggerService", () => {
 
       await logError(message);
 
-      expect(fs.mkdir).toHaveBeenCalledWith(
-        logDir,
-        { recursive: true }
-      );
+      expect(fs.mkdir).toHaveBeenCalledWith(logDir, { recursive: true });
       expect(fs.appendFile).toHaveBeenCalledWith(
         logFile,
         "[2026-01-02T12:00:00.000Z] [ERROR] Something went wrong\n",
         "utf-8"
       );
-      expect(console.error).toHaveBeenCalledWith(
-        "[2026-01-02T12:00:00.000Z] [ERROR] Something went wrong"
-      );
+      expect(console.error).toHaveBeenCalledWith("[2026-01-02T12:00:00.000Z] [ERROR] Something went wrong");
     });
 
     it("should log error message with additional data object", async () => {
@@ -107,14 +102,9 @@ describe("LoggerService", () => {
 
       await logError("Test error");
 
-      expect(console.error).toHaveBeenCalledWith(
-        "Failed to create logs directory:",
-        mkdirError
-      );
+      expect(console.error).toHaveBeenCalledWith("Failed to create logs directory:", mkdirError);
       // Should still try to write to console
-      expect(console.error).toHaveBeenCalledWith(
-        "[2026-01-02T12:00:00.000Z] [ERROR] Test error"
-      );
+      expect(console.error).toHaveBeenCalledWith("[2026-01-02T12:00:00.000Z] [ERROR] Test error");
     });
 
     it("should handle appendFile failure gracefully", async () => {
@@ -123,14 +113,9 @@ describe("LoggerService", () => {
 
       await logError("Test error");
 
-      expect(console.error).toHaveBeenCalledWith(
-        "Failed to write to log file:",
-        writeError
-      );
+      expect(console.error).toHaveBeenCalledWith("Failed to write to log file:", writeError);
       // Should still write to console
-      expect(console.error).toHaveBeenCalledWith(
-        "[2026-01-02T12:00:00.000Z] [ERROR] Test error"
-      );
+      expect(console.error).toHaveBeenCalledWith("[2026-01-02T12:00:00.000Z] [ERROR] Test error");
     });
 
     it("should handle both mkdir and appendFile failures", async () => {
@@ -149,18 +134,13 @@ describe("LoggerService", () => {
 
       await logInfo(message);
 
-      expect(fs.mkdir).toHaveBeenCalledWith(
-        logDir,
-        { recursive: true }
-      );
+      expect(fs.mkdir).toHaveBeenCalledWith(logDir, { recursive: true });
       expect(fs.appendFile).toHaveBeenCalledWith(
         logFile,
         "[2026-01-02T12:00:00.000Z] [INFO] Application started\n",
         "utf-8"
       );
-      expect(console.log).toHaveBeenCalledWith(
-        "[2026-01-02T12:00:00.000Z] [INFO] Application started"
-      );
+      expect(console.log).toHaveBeenCalledWith("[2026-01-02T12:00:00.000Z] [INFO] Application started");
     });
 
     it("should log info message with additional data", async () => {
@@ -200,14 +180,9 @@ describe("LoggerService", () => {
 
       await logInfo("Test info");
 
-      expect(console.error).toHaveBeenCalledWith(
-        "Failed to create logs directory:",
-        mkdirError
-      );
+      expect(console.error).toHaveBeenCalledWith("Failed to create logs directory:", mkdirError);
       // Should still write to console.log
-      expect(console.log).toHaveBeenCalledWith(
-        "[2026-01-02T12:00:00.000Z] [INFO] Test info"
-      );
+      expect(console.log).toHaveBeenCalledWith("[2026-01-02T12:00:00.000Z] [INFO] Test info");
     });
 
     it("should handle appendFile failure gracefully", async () => {
@@ -216,14 +191,9 @@ describe("LoggerService", () => {
 
       await logInfo("Test info");
 
-      expect(console.error).toHaveBeenCalledWith(
-        "Failed to write to log file:",
-        writeError
-      );
+      expect(console.error).toHaveBeenCalledWith("Failed to write to log file:", writeError);
       // Should still write to console.log
-      expect(console.log).toHaveBeenCalledWith(
-        "[2026-01-02T12:00:00.000Z] [INFO] Test info"
-      );
+      expect(console.log).toHaveBeenCalledWith("[2026-01-02T12:00:00.000Z] [INFO] Test info");
     });
   });
 
@@ -233,18 +203,13 @@ describe("LoggerService", () => {
 
       await logWarn(message);
 
-      expect(fs.mkdir).toHaveBeenCalledWith(
-        logDir,
-        { recursive: true }
-      );
+      expect(fs.mkdir).toHaveBeenCalledWith(logDir, { recursive: true });
       expect(fs.appendFile).toHaveBeenCalledWith(
         logFile,
         "[2026-01-02T12:00:00.000Z] [WARN] Deprecated API usage\n",
         "utf-8"
       );
-      expect(console.warn).toHaveBeenCalledWith(
-        "[2026-01-02T12:00:00.000Z] [WARN] Deprecated API usage"
-      );
+      expect(console.warn).toHaveBeenCalledWith("[2026-01-02T12:00:00.000Z] [WARN] Deprecated API usage");
     });
 
     it("should log warning message with additional data", async () => {
@@ -270,14 +235,9 @@ describe("LoggerService", () => {
 
       await logWarn("Test warning");
 
-      expect(console.error).toHaveBeenCalledWith(
-        "Failed to create logs directory:",
-        mkdirError
-      );
+      expect(console.error).toHaveBeenCalledWith("Failed to create logs directory:", mkdirError);
       // Should still write to console.warn
-      expect(console.warn).toHaveBeenCalledWith(
-        "[2026-01-02T12:00:00.000Z] [WARN] Test warning"
-      );
+      expect(console.warn).toHaveBeenCalledWith("[2026-01-02T12:00:00.000Z] [WARN] Test warning");
     });
 
     it("should handle appendFile failure gracefully", async () => {
@@ -286,14 +246,9 @@ describe("LoggerService", () => {
 
       await logWarn("Test warning");
 
-      expect(console.error).toHaveBeenCalledWith(
-        "Failed to write to log file:",
-        writeError
-      );
+      expect(console.error).toHaveBeenCalledWith("Failed to write to log file:", writeError);
       // Should still write to console.warn
-      expect(console.warn).toHaveBeenCalledWith(
-        "[2026-01-02T12:00:00.000Z] [WARN] Test warning"
-      );
+      expect(console.warn).toHaveBeenCalledWith("[2026-01-02T12:00:00.000Z] [WARN] Test warning");
     });
   });
 
@@ -361,11 +316,7 @@ describe("LoggerService", () => {
     it("should handle empty string as message", async () => {
       await logWarn("");
 
-      expect(fs.appendFile).toHaveBeenCalledWith(
-        logFile,
-        "[2026-01-02T12:00:00.000Z] [WARN] \n",
-        "utf-8"
-      );
+      expect(fs.appendFile).toHaveBeenCalledWith(logFile, "[2026-01-02T12:00:00.000Z] [WARN] \n", "utf-8");
     });
 
     it("should handle very long messages", async () => {
@@ -404,9 +355,7 @@ describe("LoggerService", () => {
 
       // JSON.stringify will throw on circular references
       // This is a known limitation of the current logger implementation
-      await expect(logError("Circular ref", circularObj)).rejects.toThrow(
-        "Converting circular structure to JSON"
-      );
+      await expect(logError("Circular ref", circularObj)).rejects.toThrow("Converting circular structure to JSON");
     });
 
     it("should handle special characters in messages", async () => {
@@ -440,10 +389,7 @@ describe("LoggerService", () => {
       await logWarn("Third log");
 
       expect(fs.mkdir).toHaveBeenCalledTimes(3);
-      expect(fs.mkdir).toHaveBeenCalledWith(
-        logDir,
-        { recursive: true }
-      );
+      expect(fs.mkdir).toHaveBeenCalledWith(logDir, { recursive: true });
     });
 
     it("should append to the same log file for all log levels", async () => {
@@ -485,4 +431,3 @@ describe("LoggerService", () => {
     });
   });
 });
-

@@ -5,9 +5,11 @@
 **Purpose:** Create a new draw along with its participants in a single atomic operation.
 
 **Method & Path:**
+
 - POST `/api/draws`
 
 **Description:**
+
 - Accepts a draw name and an array of participants (3–32 entries).
 - Inserts a record into the `draws` table and associated entries into the `draw_participants` table.
 - Returns the created draw’s ID, name, and timestamp.
@@ -18,9 +20,11 @@
 - URL: `/api/draws`
 
 ### Parameters
+
 - **None** in URL path or query.
 
 ### Request Body (JSON)
+
 ```json
 {
   "name": "string",
@@ -59,6 +63,7 @@
 ## 4. Response Details
 
 ### Success (201 Created)
+
 ```json
 {
   "id": "UUID",
@@ -66,9 +71,11 @@
   "created_at": "timestamp"
 }
 ```
+
 - Content-Type: `application/json`
 
 ### Error Responses
+
 - `400 Bad Request`: Validation errors in payload (lengths, missing fields, invalid email).
 - `401 Unauthorized`: If authentication is required and missing/invalid.
 - `500 Internal Server Error`: Database errors or unexpected failures.
@@ -106,14 +113,14 @@
 
 ## 7. Error Handling
 
-| Scenario                                   | Condition                     | Response                    |
-|--------------------------------------------|-------------------------------|-----------------------------|
-| Payload schema invalid                     | Zod parsing or constraint fail| 400 Bad Request + details   |
-| Too few or too many participants           | `length < 3` or `> 32`        | 400 Bad Request + details   |
-| Gift preferences too long                  | `gift_preferences` > 10000    | 400 Bad Request + details   |
-| Supabase insertion error (draws)           | DB returns error              | 500 Internal Server Error   |
-| Supabase insertion error (participants)    | DB returns error              | 500 Internal Server Error   |
-| Transaction partial failure                | Participants insert fails      | Rollback + 500             |
+| Scenario                                | Condition                      | Response                  |
+| --------------------------------------- | ------------------------------ | ------------------------- |
+| Payload schema invalid                  | Zod parsing or constraint fail | 400 Bad Request + details |
+| Too few or too many participants        | `length < 3` or `> 32`         | 400 Bad Request + details |
+| Gift preferences too long               | `gift_preferences` > 10000     | 400 Bad Request + details |
+| Supabase insertion error (draws)        | DB returns error               | 500 Internal Server Error |
+| Supabase insertion error (participants) | DB returns error               | 500 Internal Server Error |
+| Transaction partial failure             | Participants insert fails      | Rollback + 500            |
 
 - **Logging**
   - Log errors to console or a centralized error table via `ErrorService.log()` (if available).
@@ -142,7 +149,3 @@
    - Integration test for the API route.
 6. **Documentation**
    - Update API documentation and OpenAPI spec if available.
-
-
-
-

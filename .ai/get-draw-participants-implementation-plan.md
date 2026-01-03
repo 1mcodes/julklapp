@@ -5,6 +5,7 @@
 This endpoint retrieves the list of participants for a specific draw. It allows draw authors to view all participants they have added to their draw, including their contact information and gift preferences.
 
 **Key Characteristics:**
+
 - Read-only operation (GET method)
 - Requires authentication
 - Only the draw author can access participants
@@ -68,15 +69,16 @@ export const drawIdParamSchema = z.object({
 
 ### Error Responses
 
-| Status | Error | Description |
-|--------|-------|-------------|
-| 400 | Bad Request | Invalid drawId format (not a valid UUID) |
-| 401 | Unauthorized | Missing or invalid authentication token |
-| 403 | Forbidden | User is not the author of this draw |
-| 404 | Not Found | Draw with the specified ID does not exist |
-| 500 | Internal Server Error | Database or unexpected server error |
+| Status | Error                 | Description                               |
+| ------ | --------------------- | ----------------------------------------- |
+| 400    | Bad Request           | Invalid drawId format (not a valid UUID)  |
+| 401    | Unauthorized          | Missing or invalid authentication token   |
+| 403    | Forbidden             | User is not the author of this draw       |
+| 404    | Not Found             | Draw with the specified ID does not exist |
+| 500    | Internal Server Error | Database or unexpected server error       |
 
 **Error Response Format:**
+
 ```json
 {
   "error": "Error Type",
@@ -121,6 +123,7 @@ export const drawIdParamSchema = z.object({
 ```
 
 ### Steps:
+
 1. Client sends GET request with drawId path parameter
 2. API route validates the drawId format using Zod schema
 3. DrawService verifies draw exists and user is the author
@@ -132,21 +135,25 @@ export const drawIdParamSchema = z.object({
 ## 6. Security Considerations
 
 ### Authentication
+
 - Verify user is authenticated via Supabase Auth
 - Extract user ID from authentication context (`locals`)
 - Return 401 if no valid authentication token is present
 
 ### Authorization
+
 - Only the draw author (`draws.author_id`) can access participants
 - Query must verify `author_id` matches authenticated user's ID
 - Return 403 if user is not the draw author
 
 ### Input Validation
+
 - Validate `drawId` is a valid UUID format using Zod
 - Sanitize inputs to prevent injection attacks
 - Supabase RLS policies provide additional row-level security
 
 ### Data Protection
+
 - Participant email addresses and preferences are sensitive data
 - Ensure HTTPS is used in production
 - Log access attempts for audit purposes
@@ -155,14 +162,14 @@ export const drawIdParamSchema = z.object({
 
 ### Error Scenarios and Handling
 
-| Scenario | Detection | Response | Logging |
-|----------|-----------|----------|---------|
-| Invalid drawId format | Zod validation fails | 400 Bad Request | LoggerService.warn |
-| No authentication | `locals.user` is null/undefined | 401 Unauthorized | LoggerService.warn |
-| Draw not found | DB query returns null | 404 Not Found | LoggerService.info |
-| User not author | `author_id !== userId` | 403 Forbidden | LoggerService.warn |
-| Database error | Supabase returns error | 500 Internal Error | LoggerService.error |
-| Unexpected error | try/catch catches exception | 500 Internal Error | LoggerService.error |
+| Scenario              | Detection                       | Response           | Logging             |
+| --------------------- | ------------------------------- | ------------------ | ------------------- |
+| Invalid drawId format | Zod validation fails            | 400 Bad Request    | LoggerService.warn  |
+| No authentication     | `locals.user` is null/undefined | 401 Unauthorized   | LoggerService.warn  |
+| Draw not found        | DB query returns null           | 404 Not Found      | LoggerService.info  |
+| User not author       | `author_id !== userId`          | 403 Forbidden      | LoggerService.warn  |
+| Database error        | Supabase returns error          | 500 Internal Error | LoggerService.error |
+| Unexpected error      | try/catch catches exception     | 500 Internal Error | LoggerService.error |
 
 ### Error Response Helper
 
@@ -170,33 +177,34 @@ Create a consistent error response helper to maintain uniform error format:
 
 ```typescript
 function createErrorResponse(status: number, error: string, message: string): Response {
-  return new Response(
-    JSON.stringify({ error, message }),
-    {
-      status,
-      headers: { "Content-Type": "application/json" },
-    }
-  );
+  return new Response(JSON.stringify({ error, message }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 ```
 
 ## 8. Performance Considerations
 
 ### Database Optimization
+
 - Use indexed queries on `draw_id` column (already indexed via foreign key)
 - Select only needed columns (`id, name, surname, email, gift_preferences`)
 - Consider adding composite index on `(draw_id, id)` for pagination
 
 ### Query Optimization
+
 - Combine draw existence check with authorization in a single query when possible
 - Use `.select()` to limit returned columns
 
 ### Caching Considerations
+
 - Participant data may change infrequently after draw creation
 - Consider client-side caching with appropriate Cache-Control headers
 - No server-side caching needed for MVP
 
 ### Response Size
+
 - Maximum 32 participants per draw (enforced at creation)
 - Response payload is bounded and predictable
 
@@ -229,7 +237,7 @@ Add methods to support the endpoint:
 ```typescript
 /**
  * Retrieves a draw by ID if the user is the author.
- * 
+ *
  * @param drawId - The UUID of the draw
  * @param userId - The authenticated user's ID
  * @returns The draw if found and user is author, null otherwise
@@ -259,7 +267,7 @@ async getDrawByIdForAuthor(drawId: string, userId: string): Promise<DrawDTO | nu
 
 /**
  * Retrieves all participants for a given draw.
- * 
+ *
  * @param drawId - The UUID of the draw
  * @returns Array of ParticipantDTO
  * @throws Error if database query fails
@@ -343,7 +351,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
     if (!draw) {
       // Check if draw exists at all to differentiate 404 vs 403
       const drawExists = await drawService.drawExists(drawId);
-      
+
       if (!drawExists) {
         return new Response(
           JSON.stringify({
@@ -417,7 +425,7 @@ Add method to check if a draw exists (for 404 vs 403 differentiation):
 ```typescript
 /**
  * Checks if a draw exists by ID.
- * 
+ *
  * @param drawId - The UUID of the draw
  * @returns true if draw exists, false otherwise
  */
@@ -467,4 +475,3 @@ src/
 │           └── ... (existing)
 └── types.ts                      # No changes needed
 ```
-

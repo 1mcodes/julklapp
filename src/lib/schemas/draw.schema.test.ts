@@ -1,10 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { z } from "zod";
 
-import {
-  createParticipantSchema,
-  createDrawSchema,
-  drawIdParamSchema,
-} from "./draw.schema";
+import { createParticipantSchema, createDrawSchema, drawIdParamSchema } from "./draw.schema";
 
 describe("createParticipantSchema", () => {
   describe("valid inputs", () => {
@@ -234,9 +231,7 @@ describe("createParticipantSchema", () => {
       const result = createParticipantSchema.safeParse(invalidParticipant);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe(
-          "Gift preferences cannot exceed 10000 characters"
-        );
+        expect(result.error.errors[0].message).toBe("Gift preferences cannot exceed 10000 characters");
       }
     });
 
@@ -412,9 +407,7 @@ describe("createDrawSchema", () => {
       const result = createDrawSchema.safeParse(invalidDraw);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe(
-          "At least 3 participants are required"
-        );
+        expect(result.error.errors[0].message).toBe("At least 3 participants are required");
       }
     });
 
@@ -427,9 +420,7 @@ describe("createDrawSchema", () => {
       const result = createDrawSchema.safeParse(invalidDraw);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe(
-          "At least 3 participants are required"
-        );
+        expect(result.error.errors[0].message).toBe("At least 3 participants are required");
       }
     });
 
@@ -442,9 +433,7 @@ describe("createDrawSchema", () => {
       const result = createDrawSchema.safeParse(invalidDraw);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe(
-          "At least 3 participants are required"
-        );
+        expect(result.error.errors[0].message).toBe("At least 3 participants are required");
       }
     });
 
@@ -464,9 +453,7 @@ describe("createDrawSchema", () => {
       const result = createDrawSchema.safeParse(invalidDraw);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe(
-          "Maximum 32 participants allowed"
-        );
+        expect(result.error.errors[0].message).toBe("Maximum 32 participants allowed");
       }
     });
 
@@ -486,9 +473,7 @@ describe("createDrawSchema", () => {
       const result = createDrawSchema.safeParse(invalidDraw);
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.errors[0].message).toBe(
-          "Maximum 32 participants allowed"
-        );
+        expect(result.error.errors[0].message).toBe("Maximum 32 participants allowed");
       }
     });
 
@@ -530,7 +515,7 @@ describe("createDrawSchema", () => {
             name: "John",
             email: "john@example.com",
             gift_preferences: "Books",
-          } as any,
+          } as Partial<z.infer<typeof createParticipantSchema>>,
         ],
       };
 

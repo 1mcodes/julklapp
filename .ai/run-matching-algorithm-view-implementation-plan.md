@@ -169,11 +169,11 @@ export interface DrawParticipantsState {
   isLoading: boolean;
   error: ApiErrorResponse | null;
   httpStatus: number | null;
-  
+
   // New fields for matching functionality
-  hasMatches: boolean;              // Indicates if matches already exist
-  isMatching: boolean;              // Indicates matching operation in progress
-  matchingError: ApiErrorResponse | null;  // Separate error state for matching
+  hasMatches: boolean; // Indicates if matches already exist
+  isMatching: boolean; // Indicates matching operation in progress
+  matchingError: ApiErrorResponse | null; // Separate error state for matching
 }
 ```
 
@@ -187,7 +187,7 @@ export interface UseDrawParticipantsReturn {
   state: DrawParticipantsState;
   actions: {
     refetch: () => Promise<void>;
-    executeMatching: () => Promise<void>;  // New action
+    executeMatching: () => Promise<void>; // New action
   };
 }
 ```
@@ -255,52 +255,53 @@ const [state, setState] = useState<DrawParticipantsState>({
 ```typescript
 const actions = {
   // Existing action - refetches participants and match status
-  refetch: async () => { /* ... */ },
-  
+  refetch: async () => {
+    /* ... */
+  },
+
   // New action - executes matching algorithm
   executeMatching: async () => {
-    setState(prev => ({ 
-      ...prev, 
-      isMatching: true, 
-      matchingError: null 
+    setState((prev) => ({
+      ...prev,
+      isMatching: true,
+      matchingError: null,
     }));
-    
+
     try {
       const response = await fetch(`/api/draws/${drawId}/match`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
-      
+
       if (!response.ok) {
         const errorData: ApiErrorResponse = await response.json();
-        setState(prev => ({ 
-          ...prev, 
-          isMatching: false, 
-          matchingError: errorData 
+        setState((prev) => ({
+          ...prev,
+          isMatching: false,
+          matchingError: errorData,
         }));
         toast.error(errorData.message);
         return;
       }
-      
+
       const result: MessageDTO = await response.json();
-      setState(prev => ({ 
-        ...prev, 
-        isMatching: false, 
+      setState((prev) => ({
+        ...prev,
+        isMatching: false,
         hasMatches: true,
-        matchingError: null 
+        matchingError: null,
       }));
       toast.success(result.message);
-      
     } catch (error) {
-      setState(prev => ({ 
-        ...prev, 
+      setState((prev) => ({
+        ...prev,
         isMatching: false,
         matchingError: {
-          error: 'Network Error',
-          message: 'Unable to connect. Please check your internet connection.'
-        }
+          error: "Network Error",
+          message: "Unable to connect. Please check your internet connection.",
+        },
       }));
-      toast.error('Network error occurred');
+      toast.error("Network error occurred");
     }
   },
 };
@@ -331,7 +332,7 @@ const actions = {
 - **Response Type**: `MessageDTO`
   ```typescript
   {
-    message: "Matches created successfully"
+    message: "Matches created successfully";
   }
   ```
 - **Success Status**: 200
@@ -344,7 +345,7 @@ const actions = {
     }
     // OR
     {
-      error: "Bad Request", 
+      error: "Bad Request",
       message: "Insufficient participants. At least 3 participants are required for matching"
     }
     ```
@@ -449,48 +450,56 @@ interface ParticipantsWithMetadata {
 ### Frontend Validation Conditions
 
 #### 1. Button Visibility
+
 - **Condition**: `!hasMatches`
 - **Component**: MatchButton
 - **Effect**: Button is not rendered if matches already exist
 - **Rationale**: Prevent duplicate matching operations
 
 #### 2. Button Disabled State
+
 - **Condition**: `isLoading || isMatching`
 - **Component**: MatchButton
 - **Effect**: Button is disabled and shows loading spinner
 - **Rationale**: Prevent duplicate requests during ongoing operations
 
 #### 3. Status Badge Visibility
+
 - **Condition**: `hasMatches && !isLoading`
 - **Component**: MatchStatusBadge
 - **Effect**: Badge displays when matches exist and data is loaded
 - **Rationale**: Provide clear visual feedback about matching status
 
 #### 4. Participants Table Visibility
+
 - **Condition**: `!isLoading && !error && participants.length > 0`
 - **Component**: ParticipantsTable
 - **Effect**: Table displays with participant data
 - **Rationale**: Only show table when data is successfully loaded
 
 #### 5. Empty State Visibility
+
 - **Condition**: `!isLoading && !error && participants.length === 0`
 - **Component**: EmptyState message in table
 - **Effect**: Shows "No participants found" message
 - **Rationale**: Handle edge case of draw with no participants
 
 #### 6. Loading State
+
 - **Condition**: `isLoading`
 - **Component**: Spinner (Loader2)
 - **Effect**: Spinner displays, other content hidden
 - **Rationale**: Provide feedback during data fetching
 
 #### 7. Error State with Retry
+
 - **Condition**: `!isLoading && error && (httpStatus === 500 || httpStatus === null)`
 - **Component**: Error message with "Try Again" button
 - **Effect**: Displays error with retry option
 - **Rationale**: Allow recovery from transient errors
 
 #### 8. Error State without Retry
+
 - **Condition**: `!isLoading && error && httpStatus !== 500 && httpStatus !== null`
 - **Component**: Error message only (no retry button)
 - **Effect**: Displays error without retry option
@@ -529,6 +538,7 @@ These are enforced by the API and will return specific error responses:
 ### Error Categories and Handling Strategy
 
 #### 1. Network Errors
+
 - **Scenario**: Failed to connect to API (no internet, server down)
 - **Detection**: `catch` block in fetch call
 - **User Feedback**: Toast notification: "Network error occurred"
@@ -536,6 +546,7 @@ These are enforced by the API and will return specific error responses:
 - **State Update**: `matchingError` set with network error message
 
 #### 2. Validation Errors (400)
+
 - **Scenario A - Already Matched**: Matches already exist for the draw
   - **User Feedback**: Toast: "Matches have already been generated for this draw"
   - **Recovery**: Update local state to `hasMatches: true`, hide button
@@ -547,24 +558,28 @@ These are enforced by the API and will return specific error responses:
   - **Suggestion**: Show warning before button if participant count < 3
 
 #### 3. Authorization Errors (401, 403)
+
 - **Scenario**: User is not authenticated or not the draw author
 - **User Feedback**: Toast with specific error message from API
 - **Recovery**: No retry option (redirect to login or dashboard may be appropriate)
 - **State Update**: Set `matchingError` but keep current UI state
 
 #### 4. Not Found Error (404)
+
 - **Scenario**: Draw doesn't exist (rare - would usually fail at page load)
 - **User Feedback**: Toast: "Draw not found"
 - **Recovery**: Redirect to dashboard recommended
 - **Implementation**: Check on button click and redirect if needed
 
 #### 5. Server Errors (500)
+
 - **Scenario**: Matching algorithm failed, account provisioning failed, database error
 - **User Feedback**: Toast: "Failed to generate matches. Please try again"
 - **Recovery**: Button remains enabled for retry
 - **Logging**: Error is logged on backend for investigation
 
 #### 6. Initial Load Errors
+
 - **Scenario**: Failed to fetch participants on page load
 - **User Feedback**: Error message in place of table
 - **Recovery**: "Try Again" button that calls `actions.refetch()`
@@ -573,6 +588,7 @@ These are enforced by the API and will return specific error responses:
 ### Error Display Patterns
 
 #### Toast Notifications (sonner)
+
 ```typescript
 // Success
 toast.success("Matches created successfully");
@@ -585,6 +601,7 @@ toast.error("Network error occurred");
 ```
 
 #### Inline Error Display
+
 ```typescript
 {!state.isLoading && state.error && (
   <div className="rounded-lg border border-red-200 bg-red-50 p-6">
@@ -623,6 +640,7 @@ toast.error("Network error occurred");
 ## 11. Implementation Steps
 
 ### Step 1: Update Types
+
 1. Open `src/hooks/useDrawParticipants.ts`
 2. Enhance `DrawParticipantsState` interface to include:
    - `hasMatches: boolean`
@@ -631,6 +649,7 @@ toast.error("Network error occurred");
 3. Update `UseDrawParticipantsReturn` interface to include `executeMatching` action
 
 ### Step 2: Enhance useDrawParticipants Hook
+
 1. Open `src/hooks/useDrawParticipants.ts`
 2. Update initial state to include new fields
 3. Modify `fetchParticipants` to determine match status:
@@ -646,6 +665,7 @@ toast.error("Network error occurred");
 5. Add `executeMatching` to returned actions
 
 ### Step 3: Create MatchStatusBadge Component
+
 1. Create new file: `src/components/DrawParticipants/MatchStatusBadge.tsx`
 2. Implement badge component:
    - Use Tailwind classes for styling (green theme)
@@ -654,6 +674,7 @@ toast.error("Network error occurred");
 3. Export component
 
 ### Step 4: Create MatchButton Component
+
 1. Create new file: `src/components/DrawParticipants/MatchButton.tsx`
 2. Implement button component:
    - Accept `onClick`, `isLoading`, `isMatching` props
@@ -664,6 +685,7 @@ toast.error("Network error occurred");
 3. Export component
 
 ### Step 5: Update DrawParticipantsView Component
+
 1. Open `src/components/DrawParticipants/DrawParticipantsView.tsx`
 2. Import new components:
    - `MatchStatusBadge`
@@ -683,6 +705,7 @@ toast.error("Network error occurred");
 8. Update component layout for better spacing
 
 ### Step 6: Enhance Participants Endpoint (Backend)
+
 1. Open `src/pages/api/draws/[drawId]/participants.ts`
 2. Add logic to check if matches exist for the draw:
    - Query matches table: `SELECT COUNT(*) FROM matches WHERE draw_id = ?`
@@ -699,6 +722,7 @@ toast.error("Network error occurred");
 Alternative (simpler): Keep response as-is and make separate lightweight check in the hook
 
 ### Step 7: Update Hook to Handle Match Status
+
 1. In `src/hooks/useDrawParticipants.ts`
 2. If using enhanced endpoint response:
    - Update response parsing to extract `has_matches`
@@ -709,6 +733,7 @@ Alternative (simpler): Keep response as-is and make separate lightweight check i
    - Update state with result
 
 ### Step 8: Add Toast Provider (If Not Present)
+
 1. Check if `src/layouts/dashboard/DashboardLayout.astro` includes `<Toaster />`
 2. If not present:
    - Import Toaster from `src/components/ui/sonner`
@@ -716,6 +741,7 @@ Alternative (simpler): Keep response as-is and make separate lightweight check i
 3. Verify toast notifications work across the view
 
 ### Step 9: Update Styling and Accessibility
+
 1. Review spacing and layout in `DrawParticipantsView`
 2. Ensure proper ARIA labels:
    - Button has descriptive text
@@ -730,6 +756,7 @@ Alternative (simpler): Keep response as-is and make separate lightweight check i
    - Status badge is readable
 
 ### Step 10: Write Tests
+
 1. Create test file: `src/hooks/useDrawParticipants.test.ts` (enhance existing)
 2. Add test cases for matching functionality:
    - Initial load with no matches
@@ -746,4 +773,3 @@ Alternative (simpler): Keep response as-is and make separate lightweight check i
    - Disabled during loading
    - Shows correct icon and text
 5. Update component integration tests as needed
-

@@ -5,6 +5,7 @@
 This endpoint retrieves a paginated list of all draws created by the currently authenticated user. It allows draw authors to view their own draws with support for pagination and sorting to efficiently manage large numbers of draws.
 
 **Key Characteristics:**
+
 - Read-only operation (GET method)
 - Requires authentication
 - Returns only draws authored by the authenticated user
@@ -22,6 +23,7 @@ This endpoint retrieves a paginated list of all draws created by the currently a
   - `Authorization: Bearer <token>` (Supabase auth token)
 
 **Example Request:**
+
 ```
 GET /api/draws
 Authorization: Bearer <supabase-token>
@@ -76,13 +78,7 @@ export const listDrawsQuerySchema = z.object({
     .optional()
     .default("10")
     .transform((val) => parseInt(val, 10))
-    .pipe(
-      z
-        .number()
-        .int()
-        .min(1, "Size must be at least 1")
-        .max(100, "Size must not exceed 100")
-    ),
+    .pipe(z.number().int().min(1, "Size must be at least 1").max(100, "Size must not exceed 100")),
   sort: z
     .string()
     .optional()
@@ -95,7 +91,8 @@ export const listDrawsQuerySchema = z.object({
         return validFields.includes(field) && validDirections.includes(direction);
       },
       {
-        message: "Sort must be in format 'field:direction' where field is 'created_at' or 'name' and direction is 'asc' or 'desc'",
+        message:
+          "Sort must be in format 'field:direction' where field is 'created_at' or 'name' and direction is 'asc' or 'desc'",
       }
     ),
 });
@@ -123,19 +120,21 @@ export const listDrawsQuerySchema = z.object({
 **Type:** `DrawDTO[]`
 
 **Response Headers:**
+
 - `Content-Type: application/json`
 
 **Note:** The response is an array of draws. If no draws exist for the user, an empty array `[]` is returned (still 200 OK).
 
 ### Error Responses
 
-| Status | Error | Description |
-|--------|-------|-------------|
-| 400 | Bad Request | Invalid query parameters (negative page, size > 100, invalid sort format) |
-| 401 | Unauthorized | Missing or invalid authentication token |
-| 500 | Internal Server Error | Database or unexpected server error |
+| Status | Error                 | Description                                                               |
+| ------ | --------------------- | ------------------------------------------------------------------------- |
+| 400    | Bad Request           | Invalid query parameters (negative page, size > 100, invalid sort format) |
+| 401    | Unauthorized          | Missing or invalid authentication token                                   |
+| 500    | Internal Server Error | Database or unexpected server error                                       |
 
 **Error Response Format:**
+
 ```json
 {
   "error": "Error Type",
@@ -206,6 +205,7 @@ export const listDrawsQuerySchema = z.object({
 ```
 
 ### Steps:
+
 1. Client sends GET request with optional pagination query parameters
 2. API route validates authentication token via Supabase Auth
 3. API route validates and parses query parameters using Zod schema
@@ -218,16 +218,19 @@ export const listDrawsQuerySchema = z.object({
 ## 6. Security Considerations
 
 ### Authentication
+
 - **Verification:** Extract authenticated user from `locals.supabase.auth.getUser()`
 - **Token Validation:** Supabase middleware handles token validation
 - **Error Handling:** Return 401 if no valid authentication token is present
 
 ### Authorization
+
 - **Implicit Authorization:** Query automatically filters by authenticated user's ID
 - **Row-Level Security:** Supabase RLS policies provide additional protection
 - **No Explicit Check Needed:** Since we filter by author_id, users can only see their own draws
 
 ### Input Validation
+
 - **Query Parameters:** Validate all query params with Zod schema
 - **Type Coercion:** Convert string query params to appropriate types (integers)
 - **Range Validation:** Enforce limits on page size to prevent abuse
@@ -235,10 +238,12 @@ export const listDrawsQuerySchema = z.object({
 - **Sanitization:** Supabase handles parameter sanitization
 
 ### Rate Limiting
+
 - **Consideration:** Implement rate limiting to prevent abuse (future enhancement)
 - **Resource Protection:** Max page size of 100 prevents excessive database load
 
 ### Data Protection
+
 - **Minimal Data Exposure:** Only return necessary fields (id, name, created_at)
 - **HTTPS Required:** Ensure all production traffic uses HTTPS
 - **Audit Logging:** Log access patterns for security monitoring
@@ -247,15 +252,15 @@ export const listDrawsQuerySchema = z.object({
 
 ### Error Scenarios and Responses
 
-| Scenario | Detection | Status Code | Response | Logging |
-|----------|-----------|-------------|----------|---------|
-| Missing auth token | `locals.supabase.auth.getUser()` returns no user | 401 | `{ "error": "Unauthorized", "message": "Authentication required" }` | Info level with request metadata |
-| Invalid auth token | Supabase auth error | 401 | `{ "error": "Unauthorized", "message": "Invalid authentication token" }` | Info level with error details |
-| Invalid page param | Zod validation fails | 400 | `{ "error": "Bad Request", "message": "...", "details": [...] }` | Info level with validation errors |
-| Invalid size param | Zod validation fails | 400 | Same as above | Info level |
-| Invalid sort param | Zod validation fails | 400 | Same as above | Info level |
-| Database connection error | Supabase query throws | 500 | `{ "error": "Internal Server Error", "message": "Failed to retrieve draws" }` | Error level with full error details |
-| Unexpected error | Try-catch block | 500 | Generic error message | Error level with stack trace |
+| Scenario                  | Detection                                        | Status Code | Response                                                                      | Logging                             |
+| ------------------------- | ------------------------------------------------ | ----------- | ----------------------------------------------------------------------------- | ----------------------------------- |
+| Missing auth token        | `locals.supabase.auth.getUser()` returns no user | 401         | `{ "error": "Unauthorized", "message": "Authentication required" }`           | Info level with request metadata    |
+| Invalid auth token        | Supabase auth error                              | 401         | `{ "error": "Unauthorized", "message": "Invalid authentication token" }`      | Info level with error details       |
+| Invalid page param        | Zod validation fails                             | 400         | `{ "error": "Bad Request", "message": "...", "details": [...] }`              | Info level with validation errors   |
+| Invalid size param        | Zod validation fails                             | 400         | Same as above                                                                 | Info level                          |
+| Invalid sort param        | Zod validation fails                             | 400         | Same as above                                                                 | Info level                          |
+| Database connection error | Supabase query throws                            | 500         | `{ "error": "Internal Server Error", "message": "Failed to retrieve draws" }` | Error level with full error details |
+| Unexpected error          | Try-catch block                                  | 500         | Generic error message                                                         | Error level with stack trace        |
 
 ### Error Handling Strategy
 
@@ -270,43 +275,46 @@ export const listDrawsQuerySchema = z.object({
 ```typescript
 try {
   // Validate auth
-  const { data: { user }, error: authError } = await locals.supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: authError,
+  } = await locals.supabase.auth.getUser();
+
   if (authError || !user) {
     await LoggerService.info("Unauthorized list draws request", { authError });
-    return new Response(
-      JSON.stringify({ error: "Unauthorized", message: "Authentication required" }),
-      { status: 401, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Unauthorized", message: "Authentication required" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
   }
-  
+
   // Validate query params
   const validationResult = listDrawsQuerySchema.safeParse(url.searchParams);
-  
+
   if (!validationResult.success) {
     // Return validation errors
   }
-  
+
   // Business logic
   const draws = await drawService.getDrawsByAuthor(user.id, paginationParams);
-  
+
   return new Response(JSON.stringify(draws), {
     status: 200,
-    headers: { "Content-Type": "application/json" }
+    headers: { "Content-Type": "application/json" },
   });
-  
 } catch (error) {
   await LoggerService.error("Unexpected error in list draws endpoint", error);
-  return new Response(
-    JSON.stringify({ error: "Internal Server Error", message: "Failed to retrieve draws" }),
-    { status: 500, headers: { "Content-Type": "application/json" } }
-  );
+  return new Response(JSON.stringify({ error: "Internal Server Error", message: "Failed to retrieve draws" }), {
+    status: 500,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 ```
 
 ## 8. Implementation Steps
 
 ### Step 1: Create Validation Schema
+
 **File:** `src/lib/schemas/draw.schema.ts`
 
 ```typescript
@@ -323,13 +331,7 @@ export const listDrawsQuerySchema = z.object({
     .optional()
     .default("10")
     .transform((val) => parseInt(val, 10))
-    .pipe(
-      z
-        .number()
-        .int()
-        .min(1, "Size must be at least 1")
-        .max(100, "Size must not exceed 100")
-    ),
+    .pipe(z.number().int().min(1, "Size must be at least 1").max(100, "Size must not exceed 100")),
   sort: z
     .string()
     .optional()
@@ -342,13 +344,15 @@ export const listDrawsQuerySchema = z.object({
         return validFields.includes(field) && validDirections.includes(direction);
       },
       {
-        message: "Sort must be in format 'field:direction' where field is 'created_at' or 'name' and direction is 'asc' or 'desc'",
+        message:
+          "Sort must be in format 'field:direction' where field is 'created_at' or 'name' and direction is 'asc' or 'desc'",
       }
     ),
 });
 ```
 
 ### Step 2: Add Service Method
+
 **File:** `src/lib/services/draw.service.ts`
 
 ```typescript
@@ -393,6 +397,7 @@ async getDrawsByAuthor(
 ```
 
 ### Step 3: Add GET Handler to API Route
+
 **File:** `src/pages/api/draws.ts`
 
 ```typescript
@@ -508,9 +513,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
 ```
 
 ### Step 4: Add Unit Tests for Service Method
+
 **File:** `src/lib/services/draw.service.test.ts`
 
 Add test cases for:
+
 - Fetching draws with default pagination
 - Fetching draws with custom page size
 - Sorting by created_at ascending/descending
@@ -520,9 +527,11 @@ Add test cases for:
 - Correct offset calculation for different pages
 
 ### Step 5: Add Integration Tests for API Route
+
 **File:** `src/pages/api/draws.test.ts`
 
 Add test cases for:
+
 - Successful retrieval with default params (200)
 - Successful retrieval with custom pagination (200)
 - Empty array for user with no draws (200)
@@ -533,6 +542,7 @@ Add test cases for:
 - Database error handling (500)
 
 ### Step 6: Update Database Indexes (if needed)
+
 **Migration File:** Create migration to add indexes
 
 ```sql
@@ -577,4 +587,3 @@ CREATE INDEX IF NOT EXISTS idx_draws_author_name ON draws(author_id, name ASC);
 5. **Performance:**
    - [ ] Response time acceptable for large datasets
    - [ ] Database query uses indexes
-

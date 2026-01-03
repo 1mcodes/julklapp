@@ -4,11 +4,7 @@ import { Button } from "../ui/button";
 import { Loader2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 
-interface ResetPasswordFormProps {
-  token: string;
-}
-
-const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token }) => {
+const ResetPasswordForm: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -264,4 +260,3 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({ token }) => {
 };
 
 export default ResetPasswordForm;
-

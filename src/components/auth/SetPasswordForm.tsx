@@ -116,9 +116,7 @@ const SetPasswordForm: React.FC<SetPasswordFormProps> = ({ userName }) => {
     <div className="space-y-6">
       {/* Welcome Message */}
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Welcome{userName ? `, ${userName}` : ""}!
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900">Welcome{userName ? `, ${userName}` : ""}!</h2>
         <p className="text-sm text-gray-600">
           Please set your password to continue and access your Secret Santa match.
         </p>
@@ -269,4 +267,3 @@ const SetPasswordForm: React.FC<SetPasswordFormProps> = ({ userName }) => {
 };
 
 export default SetPasswordForm;
-

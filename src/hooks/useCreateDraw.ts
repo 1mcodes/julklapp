@@ -20,7 +20,7 @@ export function useCreateDraw(): UseCreateDrawReturn {
   /**
    * Validates if the response matches the DrawDTO structure
    */
-  const isValidDrawDTO = (obj: any): obj is DrawDTO => {
+  const isValidDrawDTO = (obj: unknown): obj is DrawDTO => {
     return (
       typeof obj === "object" &&
       obj !== null &&
