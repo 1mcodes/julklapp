@@ -2,34 +2,50 @@ import { test, expect } from "@playwright/test";
 import { CreateDrawPage } from "./pages/CreateDrawPage";
 import { LoginPage } from "./pages/LoginPage";
 import { DrawParticipantsPage } from "./pages/DrawParticipantsPage";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// File to track generated test emails
+const testEmailsFile = path.join(process.cwd(), "playwright/.auth/test-emails.json");
+
+// File with fixed test emails
+const fixedTestEmailsFile = path.join(__dirname, "test-emails.json");
 
 // Helper functions for generating random participant data
-function generateRandomFirstName(): string {
-  const firstNames = ["Alice", "Bob", "Carol", "David", "Emma", "Frank", "Grace", "Henry", "Iris", "Jack"];
-  return firstNames[Math.floor(Math.random() * firstNames.length)];
+function saveTestEmail(email: string) {
+  let testEmails: string[] = [];
+
+  // Load existing emails if file exists
+  if (fs.existsSync(testEmailsFile)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(testEmailsFile, "utf8"));
+      testEmails = data.emails || [];
+    } catch {
+      // If file is corrupted, start fresh
+      testEmails = [];
+    }
+  }
+
+  // Add new email if not already tracked
+  if (!testEmails.includes(email)) {
+    testEmails.push(email);
+    fs.writeFileSync(testEmailsFile, JSON.stringify({ emails: testEmails }, null, 2));
+  }
 }
 
-function generateRandomLastName(): string {
-  const lastNames = [
-    "Johnson",
-    "Smith",
-    "Williams",
-    "Brown",
-    "Davis",
-    "Miller",
-    "Wilson",
-    "Moore",
-    "Taylor",
-    "Anderson",
-  ];
-  return lastNames[Math.floor(Math.random() * lastNames.length)];
-}
-
-function generateRandomEmail(firstName: string, lastName: string): string {
-  const domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "example.com"];
-  const domain = domains[Math.floor(Math.random() * domains.length)];
-  const randomNumber = Math.floor(Math.random() * 1000);
-  return `${firstName.toLowerCase()}.${lastName.toLowerCase()}${randomNumber}@${domain}`;
+// Load fixed test emails
+function loadFixedTestEmails(): string[] {
+  try {
+    const data = JSON.parse(fs.readFileSync(fixedTestEmailsFile, "utf8"));
+    return data.emails || [];
+  } catch (error) {
+    console.error("Could not load fixed test emails:", error);
+    return [];
+  }
 }
 
 test.describe("Create Draw", () => {
@@ -214,16 +230,29 @@ test.describe("Complete Draw Creation Flow", () => {
     await createDrawPage.addParticipant();
     await createDrawPage.addParticipant();
 
-    // Generate random data for 5 participants
+    // Load fixed test emails and generate participants
+    const fixedEmails = loadFixedTestEmails();
+
+    if (fixedEmails.length < 5) {
+      throw new Error(`Not enough test emails available. Found ${fixedEmails.length}, need at least 5.`);
+    }
+
     const participants = [];
+
     for (let i = 0; i < 5; i++) {
-      const firstName = generateRandomFirstName();
-      const lastName = generateRandomLastName();
-      const email = generateRandomEmail(firstName, lastName);
+      const email = fixedEmails[i];
+
+      // Extract name from email for form filling (firstname.lastname format)
+      const emailParts = email.split("@")[0].split(".");
+      const firstName = emailParts[0] || "Unknown";
+      const lastName = emailParts[1] || "User";
+
+      // Track this email for cleanup purposes
+      saveTestEmail(email);
 
       participants.push({
-        firstName,
-        lastName,
+        firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1),
+        lastName: lastName.charAt(0).toUpperCase() + lastName.slice(1),
         email,
         giftPreferences: "Books, cozy socks, herbal teas",
       });

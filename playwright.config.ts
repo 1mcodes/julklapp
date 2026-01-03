@@ -50,6 +50,8 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], storageState: "playwright/.auth/user.json" },
       dependencies: ["setup"],
     },
+    // Teardown project - runs after all tests complete
+    { name: "teardown", testMatch: /.*\.teardown\.ts/, dependencies: ["chromium"] },
   ],
 
   /* Run your local dev server before starting the tests */
