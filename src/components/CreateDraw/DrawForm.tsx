@@ -1,40 +1,43 @@
-import React, { useEffect, useRef } from "react";
-import { useDrawForm } from "../../hooks/useDrawForm";
+import React, { useEffect } from "react";
+import { useDrawFormRHF } from "../../hooks/useDrawFormRHF";
+import { useCreateDraw } from "../../hooks/useCreateDraw";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import type { DrawDTO } from "../../types";
 
 const DrawForm: React.FC = () => {
-  const { state, actions } = useDrawForm();
-  const drawNameRef = useRef<HTMLInputElement>(null);
+  const { form, fields, actions, constraints } = useDrawFormRHF();
+  const { createDraw, loading: isSubmitting, error: apiError } = useCreateDraw();
+  const [successDraw, setSuccessDraw] = React.useState<DrawDTO | null>(null);
 
-  // Auto-focus on draw name input when component mounts
-  useEffect(() => {
-    if (drawNameRef.current) {
-      drawNameRef.current.focus();
-    }
-  }, []);
+  const handleSubmit = form.handleSubmit(async (data) => {
+    try {
+      const draw = await createDraw(data);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const result = await actions.submitForm();
-
-    if (result.success && result.draw) {
       // Show success toast
-      toast.success(`Draw "${result.draw.name}" created successfully!`, {
+      toast.success(`Draw "${draw.name}" created successfully!`, {
         description: "You can now share the draw link with participants.",
       });
 
-      // Navigate to the participants page for the newly created draw
-      setTimeout(() => {
-        window.location.href = `/dashboard/draws/${result.draw.id}/participants`;
-      }, 1500);
+      // Set success state for navigation
+      setSuccessDraw(draw);
+    } catch {
+      // Error is already handled by the useCreateDraw hook
+      // and displayed in the form
     }
-  };
+  });
 
-  const canAddParticipant = state.participants.length < 32;
-  const canRemoveParticipant = state.participants.length > 3;
+  // Handle navigation after successful draw creation
+  useEffect(() => {
+    if (successDraw) {
+      const timer = setTimeout(() => {
+        window.location.href = `/dashboard/draws/${successDraw.id}/participants`;
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [successDraw]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -44,22 +47,20 @@ const DrawForm: React.FC = () => {
           Draw Name *
         </label>
         <Input
-          ref={drawNameRef}
           id="draw-name"
           type="text"
-          value={state.name}
-          onChange={(e) => actions.setName(e.target.value)}
+          {...form.register("name")}
           placeholder="Enter draw name (e.g., Christmas 2024)"
-          className={state.nameError ? "border-red-500" : ""}
-          disabled={state.isSubmitting}
+          className={form.formState.errors.name ? "border-red-500" : ""}
+          disabled={isSubmitting}
           aria-required="true"
-          aria-invalid={!!state.nameError}
-          aria-describedby={state.nameError ? "draw-name-error" : undefined}
+          aria-invalid={!!form.formState.errors.name}
+          aria-describedby={form.formState.errors.name ? "draw-name-error" : undefined}
           data-test-id="draw-name-input"
         />
-        {state.nameError && (
+        {form.formState.errors.name && (
           <p id="draw-name-error" className="text-sm text-red-600" role="alert">
-            {state.nameError}
+            {form.formState.errors.name.message}
           </p>
         )}
       </div>
@@ -73,9 +74,9 @@ const DrawForm: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={actions.addParticipant}
-            disabled={!canAddParticipant || state.isSubmitting}
+            disabled={!constraints.canAddParticipant || isSubmitting}
             className="flex items-center gap-2"
-            aria-label={canAddParticipant ? "Add another participant" : "Maximum participants reached (32)"}
+            aria-label={constraints.canAddParticipant ? "Add another participant" : "Maximum participants reached (32)"}
             data-test-id="add-participant-button"
           >
             <Plus className="h-4 w-4" />
@@ -85,33 +86,32 @@ const DrawForm: React.FC = () => {
 
         {/* Screen reader status for participant count */}
         <div className="sr-only" aria-live="polite" aria-atomic="true">
-          {state.participants.length} participants added
+          {constraints.currentParticipants} participants added
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {state.participants.map((participant, index) => (
+          {fields.map((field, index) => (
             <ParticipantFieldGroup
-              key={participant.id}
-              participant={participant}
+              key={field.id}
               index={index}
-              canRemove={canRemoveParticipant}
-              onChange={(field, value) => actions.updateParticipantField(index, field, value)}
+              canRemove={constraints.canRemoveParticipant}
               onRemove={() => actions.removeParticipant(index)}
-              disabled={state.isSubmitting}
+              disabled={isSubmitting}
+              form={form}
             />
           ))}
         </div>
 
-        {state.participants.length < 3 && (
+        {constraints.currentParticipants < 3 && (
           <p className="text-sm text-amber-600">You need at least 3 participants to create a draw.</p>
         )}
       </div>
 
       {/* Form Error with ARIA live region */}
       <div aria-live="polite" aria-atomic="true">
-        {state.formError && (
+        {apiError && (
           <div className="rounded-md bg-red-50 p-4" role="alert">
-            <p className="text-sm text-red-800">{state.formError}</p>
+            <p className="text-sm text-red-800">{apiError}</p>
           </div>
         )}
       </div>
@@ -120,17 +120,17 @@ const DrawForm: React.FC = () => {
       <div className="flex justify-end">
         <Button
           type="submit"
-          disabled={state.isSubmitting || !state.name.trim() || state.participants.length < 3}
+          disabled={isSubmitting || !form.watch("name")?.trim() || constraints.currentParticipants < 3}
           className="flex items-center gap-2"
-          aria-describedby={state.isSubmitting ? "submit-status" : undefined}
+          aria-describedby={isSubmitting ? "submit-status" : undefined}
           data-test-id="create-draw-button"
         >
-          {state.isSubmitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-          {state.isSubmitting ? "Creating Draw..." : "Create Draw"}
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+          {isSubmitting ? "Creating Draw..." : "Create Draw"}
         </Button>
 
         {/* Screen reader status for form submission */}
-        {state.isSubmitting && (
+        {isSubmitting && (
           <div id="submit-status" className="sr-only" aria-live="assertive">
             Creating draw, please wait...
           </div>
@@ -141,24 +141,19 @@ const DrawForm: React.FC = () => {
 };
 
 interface ParticipantFieldGroupProps {
-  participant: ReturnType<typeof useDrawForm>["state"]["participants"][0];
   index: number;
   canRemove: boolean;
-  onChange: (
-    field: keyof Omit<ReturnType<typeof useDrawForm>["state"]["participants"][0], "id">,
-    value: string
-  ) => void;
   onRemove: () => void;
   disabled: boolean;
+  form: ReturnType<typeof useDrawFormRHF>["form"];
 }
 
 const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
-  participant,
   index,
   canRemove,
-  onChange,
   onRemove,
   disabled,
+  form,
 }) => {
   return (
     <div className="rounded-lg border bg-white p-4 shadow-sm">
@@ -190,19 +185,18 @@ const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
           <Input
             id={`name-${index}`}
             type="text"
-            value={participant.name}
-            onChange={(e) => onChange("name", e.target.value)}
+            {...form.register(`participants.${index}.name`)}
             placeholder="Enter first name"
-            className={participant.errors?.name ? "border-red-500" : ""}
+            className={form.formState.errors.participants?.[index]?.name ? "border-red-500" : ""}
             disabled={disabled}
             aria-required="true"
-            aria-invalid={!!participant.errors?.name}
-            aria-describedby={participant.errors?.name ? `name-error-${index}` : undefined}
+            aria-invalid={!!form.formState.errors.participants?.[index]?.name}
+            aria-describedby={form.formState.errors.participants?.[index]?.name ? `name-error-${index}` : undefined}
             data-test-id={`participant-${index}-first-name`}
           />
-          {participant.errors?.name && (
+          {form.formState.errors.participants?.[index]?.name && (
             <p id={`name-error-${index}`} className="text-sm text-red-600" role="alert">
-              {participant.errors.name}
+              {form.formState.errors.participants[index].name.message}
             </p>
           )}
         </div>
@@ -215,19 +209,20 @@ const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
           <Input
             id={`surname-${index}`}
             type="text"
-            value={participant.surname}
-            onChange={(e) => onChange("surname", e.target.value)}
+            {...form.register(`participants.${index}.surname`)}
             placeholder="Enter last name"
-            className={participant.errors?.surname ? "border-red-500" : ""}
+            className={form.formState.errors.participants?.[index]?.surname ? "border-red-500" : ""}
             disabled={disabled}
             aria-required="true"
-            aria-invalid={!!participant.errors?.surname}
-            aria-describedby={participant.errors?.surname ? `surname-error-${index}` : undefined}
+            aria-invalid={!!form.formState.errors.participants?.[index]?.surname}
+            aria-describedby={
+              form.formState.errors.participants?.[index]?.surname ? `surname-error-${index}` : undefined
+            }
             data-test-id={`participant-${index}-last-name`}
           />
-          {participant.errors?.surname && (
+          {form.formState.errors.participants?.[index]?.surname && (
             <p id={`surname-error-${index}`} className="text-sm text-red-600" role="alert">
-              {participant.errors.surname}
+              {form.formState.errors.participants[index].surname.message}
             </p>
           )}
         </div>
@@ -240,19 +235,18 @@ const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
           <Input
             id={`email-${index}`}
             type="email"
-            value={participant.email}
-            onChange={(e) => onChange("email", e.target.value)}
+            {...form.register(`participants.${index}.email`)}
             placeholder="Enter email address"
-            className={participant.errors?.email ? "border-red-500" : ""}
+            className={form.formState.errors.participants?.[index]?.email ? "border-red-500" : ""}
             disabled={disabled}
             aria-required="true"
-            aria-invalid={!!participant.errors?.email}
-            aria-describedby={participant.errors?.email ? `email-error-${index}` : undefined}
+            aria-invalid={!!form.formState.errors.participants?.[index]?.email}
+            aria-describedby={form.formState.errors.participants?.[index]?.email ? `email-error-${index}` : undefined}
             data-test-id={`participant-${index}-email`}
           />
-          {participant.errors?.email && (
+          {form.formState.errors.participants?.[index]?.email && (
             <p id={`email-error-${index}`} className="text-sm text-red-600" role="alert">
-              {participant.errors.email}
+              {form.formState.errors.participants[index].email.message}
             </p>
           )}
         </div>
@@ -264,28 +258,29 @@ const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
           </label>
           <textarea
             id={`giftPreferences-${index}`}
-            value={participant.giftPreferences}
-            onChange={(e) => onChange("giftPreferences", e.target.value)}
+            {...form.register(`participants.${index}.gift_preferences`)}
             placeholder="Optional gift preferences or wishlist items..."
             className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-              participant.errors?.giftPreferences ? "border-red-500" : ""
+              form.formState.errors.participants?.[index]?.gift_preferences ? "border-red-500" : ""
             }`}
             disabled={disabled}
             rows={3}
             maxLength={10000}
-            aria-invalid={!!participant.errors?.giftPreferences}
+            aria-invalid={!!form.formState.errors.participants?.[index]?.gift_preferences}
             aria-describedby={
-              participant.errors?.giftPreferences ? `giftPreferences-error-${index}` : `giftPreferences-help-${index}`
+              form.formState.errors.participants?.[index]?.gift_preferences
+                ? `giftPreferences-error-${index}`
+                : `giftPreferences-help-${index}`
             }
             data-test-id={`participant-${index}-gift-preferences`}
           />
-          {participant.errors?.giftPreferences && (
+          {form.formState.errors.participants?.[index]?.gift_preferences && (
             <p id={`giftPreferences-error-${index}`} className="text-sm text-red-600" role="alert">
-              {participant.errors.giftPreferences}
+              {form.formState.errors.participants[index].gift_preferences.message}
             </p>
           )}
           <p id={`giftPreferences-help-${index}`} className="text-xs text-gray-500">
-            {participant.giftPreferences.length}/10000 characters
+            {form.watch(`participants.${index}.gift_preferences`)?.length || 0}/10000 characters
           </p>
         </div>
       </div>
