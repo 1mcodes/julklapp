@@ -5,6 +5,7 @@ interface DrawsTableProps {
   /** List of draws to render */
   draws: DrawRowViewModel[];
   /** Callback for details button click */
+  // eslint-disable-next-line no-unused-vars
   onViewDetails: (drawId: string) => void;
 }
 

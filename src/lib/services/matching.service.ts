@@ -34,6 +34,7 @@ interface ParticipantWithUserId {
  * Service responsible for Secret Santa matching operations.
  */
 export class MatchingService {
+  // eslint-disable-next-line no-unused-vars
   constructor(private readonly supabase: SupabaseClient) {}
 
   /**

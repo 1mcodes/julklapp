@@ -11,7 +11,6 @@ async function ensureLogDirectory(): Promise<void> {
   try {
     await fs.mkdir(logDir, { recursive: true });
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Failed to create logs directory:", error);
   }
 }
@@ -33,7 +32,6 @@ async function writeLog(entry: string): Promise<void> {
     await ensureLogDirectory();
     await fs.appendFile(logFile, entry, "utf-8");
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Failed to write to log file:", error);
   }
 }
@@ -47,7 +45,6 @@ async function writeLog(entry: string): Promise<void> {
 export async function logError(message: string, error?: unknown): Promise<void> {
   const entry = formatLogEntry("ERROR", message, error);
   await writeLog(entry);
-  // eslint-disable-next-line no-console
   console.error(entry.trim());
 }
 
@@ -60,7 +57,6 @@ export async function logError(message: string, error?: unknown): Promise<void> 
 export async function logInfo(message: string, data?: unknown): Promise<void> {
   const entry = formatLogEntry("INFO", message, data);
   await writeLog(entry);
-  // eslint-disable-next-line no-console
   console.log(entry.trim());
 }
 
@@ -73,7 +69,6 @@ export async function logInfo(message: string, data?: unknown): Promise<void> {
 export async function logWarn(message: string, data?: unknown): Promise<void> {
   const entry = formatLogEntry("WARN", message, data);
   await writeLog(entry);
-  // eslint-disable-next-line no-console
   console.warn(entry.trim());
 }
 

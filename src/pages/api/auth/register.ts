@@ -99,7 +99,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
     );
   } catch (error) {
     // Unexpected error handling
-    // eslint-disable-next-line no-console
     console.error("Unexpected error in registration endpoint:", error);
 
     return new Response(

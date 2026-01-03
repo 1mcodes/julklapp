@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 
 interface DetailsIconButtonProps {
-  /** Draw identifier for navigation */
+  /** Draw identifier for navigation - used in onClick handler */
   drawId: string;
   /** Draw name for accessible label */
   drawName: string;
   /** Click handler */
-  onClick: (drawId: string) => void;
+  onClick: (_drawId: string) => void;
 }
 
 /**

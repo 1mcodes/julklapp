@@ -3,6 +3,7 @@ import type { CreateDrawInput } from "../lib/schemas/draw.schema";
 import type { DrawDTO } from "../types";
 
 export interface UseCreateDrawReturn {
+  // eslint-disable-next-line no-unused-vars
   createDraw: (data: CreateDrawInput) => Promise<DrawDTO>;
   loading: boolean;
   error: string | null;

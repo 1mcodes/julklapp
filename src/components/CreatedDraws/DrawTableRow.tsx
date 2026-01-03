@@ -6,6 +6,7 @@ interface DrawTableRowProps {
   /** Draw data for display */
   draw: DrawRowViewModel;
   /** Callback for details button */
+  // eslint-disable-next-line no-unused-vars
   onViewDetails: (drawId: string) => void;
 }
 

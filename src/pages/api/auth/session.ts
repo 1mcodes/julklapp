@@ -33,7 +33,6 @@ export const GET: APIRoute = async ({ locals }) => {
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Unexpected error in session endpoint:", error);
 
     return new Response(

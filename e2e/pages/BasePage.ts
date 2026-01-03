@@ -5,7 +5,10 @@ import { Page } from "@playwright/test";
  * Provides common functionality for all page objects
  */
 export class BasePage {
-  constructor(protected page: Page) {}
+  constructor(protected page: Page) {
+    // page is used via the protected property in subclasses
+    this.page = page;
+  }
 
   /**
    * Navigate to a specific path

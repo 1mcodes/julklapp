@@ -16,6 +16,7 @@ interface ProvisionedParticipant {
  * Service responsible for managing draw operations.
  */
 export class DrawService {
+  // eslint-disable-next-line no-unused-vars
   constructor(private readonly supabase: SupabaseClient) {}
 
   /**
