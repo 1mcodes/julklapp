@@ -1,9 +1,13 @@
 # Product Requirements Document (PRD) - JulklApp
+
 ## 1. Product Overview
+
 JulklApp is a web application that automates the creation and management of Secret Santa events (draws) for small groups (3–32 participants). Draw authors can register, create events, and input participant details. After conducting the draw, participants are auto-provisioned accounts and can log in to view their assigned recipient along with AI-generated gift suggestions based on free-text preference letters. The application emphasizes simplicity, security, and future localization support.
 
 ## 2. User Problem
+
 Friends and families organizing Secret Santa lack a simple, secure tool to:
+
 - Collect participant information (name, surname, email, gift preferences).
 - Ensure fair, one-to-one matching without self-matches.
 - Share match results privately with each participant.
@@ -11,6 +15,7 @@ Friends and families organizing Secret Santa lack a simple, secure tool to:
 - Manage events without complex manual coordination or email confirmations.
 
 ## 3. Functional Requirements
+
 - FR-001: User authentication and registration for draw authors via email/password.
 - FR-002: Secure login for participants with first-time password setup.
 - FR-003: Create Secret Santa draw with 3–32 participants.
@@ -26,7 +31,9 @@ Friends and families organizing Secret Santa lack a simple, secure tool to:
 - FR-013: Wrap all UI strings in an i18n abstraction for future localization.
 
 ## 4. Product Boundaries
+
 In scope:
+
 - Email/password authentication for authors and participants.
 - Draw creation and participant management.
 - AI-based gift suggestions with caching and refresh.
@@ -34,12 +41,14 @@ In scope:
 - English UI with i18n support.
 
 Out of scope:
+
 - Email confirmation workflow for participation.
 - Participant exclusion rules and validation of mutual exclusions.
 - Budget handling for gifts.
 - Draw modification or deletion after creation.
 
 ## 5. User Stories
+
 - ID: US-001
   Title: Author registration and login
   Description: As a draw author, I want to register and log in with my email and password so that I can securely manage my events.
@@ -129,6 +138,7 @@ Out of scope:
   - Given the redirect fails, when an error occurs, then I see an error message with an option to manually navigate to the draw.
 
 ## 6. Success Metrics
+
 - Every participant has exactly one distinct match (100% match rate).
 - Participants successfully log in and view results in at least 95% of attempts.
 - AI suggestions load successfully within timeout in at least 90% of calls.

@@ -1,11 +1,13 @@
 # 1. Tables
 
 ### 1.1 user_role_enum
+
 ```sql
 CREATE TYPE user_role_enum AS ENUM ('author', 'participant');
 ```
 
 ### 1.2 users
+
 This table is managed by Supabase Auth
 
 - id: UUID, PRIMARY KEY, DEFAULT gen_random_uuid()
@@ -16,12 +18,14 @@ This table is managed by Supabase Auth
 - created_at: TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT now()
 
 ### 1.3 draws
+
 - id: UUID, PRIMARY KEY, DEFAULT gen_random_uuid()
 - author_id: UUID, NOT NULL, REFERENCES users(id) ON DELETE CASCADE
 - name: TEXT, NOT NULL
 - created_at: TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT now()
 
 ### 1.4 draw_participants
+
 - id: UUID, PRIMARY KEY, DEFAULT gen_random_uuid()
 - draw_id: UUID, NOT NULL, REFERENCES draws(id) ON DELETE CASCADE
 - user_id: UUID, REFERENCES users(id) ON DELETE SET NULL
@@ -32,6 +36,7 @@ This table is managed by Supabase Auth
 - created_at: TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT now()
 
 ### 1.5 matches
+
 - id: UUID, PRIMARY KEY, DEFAULT gen_random_uuid()
 - draw_id: UUID, NOT NULL, REFERENCES draws(id) ON DELETE CASCADE
 - giver_id: UUID, NOT NULL, REFERENCES draw_participants(id) ON DELETE CASCADE
@@ -39,17 +44,20 @@ This table is managed by Supabase Auth
 - created_at: TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT now()
 
 **Constraints:**
+
 - UNIQUE (draw_id, giver_id)
 - UNIQUE (draw_id, recipient_id)
 - CHECK (giver_id <> recipient_id)
 
 ### 1.6 ai_suggestions
+
 - id: UUID, PRIMARY KEY, DEFAULT gen_random_uuid()
 - match_id: UUID, NOT NULL, UNIQUE, REFERENCES matches(id) ON DELETE CASCADE
 - data: JSONB, NOT NULL
 - created_at: TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT now()
 
 # 2. Relationships
+
 - users (1) ↔ draws (many) via draws.author_id → users.id
 - draws (1) ↔ draw_participants (many) via draw_participants.draw_id → draws.id
 - users (1) ↔ draw_participants (many) via draw_participants.user_id → users.id
@@ -58,6 +66,7 @@ This table is managed by Supabase Auth
 - matches (1) ↔ ai_suggestions (1) via ai_suggestions.match_id → matches.id
 
 # 3. Indexes
+
 - users.email (UNIQUE)
 - draw_participants.draw_id
 - draw_participants.user_id
@@ -67,7 +76,9 @@ This table is managed by Supabase Auth
 - ai_suggestions.match_id (UNIQUE)
 
 # 4. PostgreSQL Policies (Row-Level Security)
+
 Enable RLS on all tables that should be scoped to the current user:
+
 ```sql
 ALTER TABLE draws            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE draw_participants ENABLE ROW LEVEL SECURITY;
@@ -76,6 +87,7 @@ ALTER TABLE ai_suggestions  ENABLE ROW LEVEL SECURITY;
 ```
 
 ### 4.1 draws
+
 ```sql
 CREATE POLICY author_select ON draws
   FOR SELECT USING (author_id = auth.uid());
@@ -84,6 +96,7 @@ CREATE POLICY author_modify ON draws
 ```
 
 ### 4.2 draw_participants
+
 ```sql
 -- Authors can view all participants in their draws
 CREATE POLICY author_view_participants ON draw_participants
@@ -101,6 +114,7 @@ CREATE POLICY participant_self_manage ON draw_participants
 ```
 
 ### 4.3 matches
+
 ```sql
 -- Authors can view all matches in their draws
 CREATE POLICY author_view_matches ON matches
@@ -124,6 +138,7 @@ CREATE POLICY participant_view_match ON matches
 ```
 
 ### 4.4 ai_suggestions
+
 ```sql
 -- Authors can view suggestions for matches in their draws
 CREATE POLICY author_view_suggestions ON ai_suggestions
@@ -149,6 +164,7 @@ CREATE POLICY participant_view_suggestions ON ai_suggestions
 ```
 
 # 5. Additional Notes
+
 - All UUID primary keys use `gen_random_uuid()` (ensure the `pgcrypto` extension is enabled).
 - Gift preferences are limited to 10,000 characters via a CHECK constraint.
 - Denormalization is avoided; schema is in 3NF.

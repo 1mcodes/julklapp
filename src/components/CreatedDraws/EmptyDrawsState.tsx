@@ -27,7 +27,7 @@ export function EmptyDrawsState({ onCreateDraw }: EmptyDrawsStateProps) {
       </div>
       <h2 className="text-2xl font-semibold mb-2">No draws yet</h2>
       <p className="text-muted-foreground text-center mb-8 max-w-md">
-        You haven't created any draws yet. Create your first Secret Santa draw to get started.
+        You haven&apos;t created any draws yet. Create your first Secret Santa draw to get started.
       </p>
       <Button onClick={onCreateDraw} variant="default" size="lg">
         Create New Draw

@@ -10,8 +10,6 @@ import { toast } from "sonner";
 interface CreatedDrawsViewProps {
   /** Whether the tab is currently active (for lazy loading) */
   isActive: boolean;
-  /** Authenticated user ID */
-  userId: string;
 }
 
 /**
@@ -20,9 +18,8 @@ interface CreatedDrawsViewProps {
  * Displays a table of user-created draws with options to view details or create new draws
  * @param props - Component props
  * @param props.isActive - Whether the tab is currently active (for lazy loading)
- * @param props.userId - Authenticated user ID
  */
-export function CreatedDrawsView({ isActive, userId }: CreatedDrawsViewProps) {
+export function CreatedDrawsView({ isActive }: CreatedDrawsViewProps) {
   const { viewModels, loading, error, errorMessage, refetch } = useDraws();
 
   /**

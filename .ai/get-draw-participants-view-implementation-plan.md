@@ -5,6 +5,7 @@
 The Draw Details (Author) view displays a list of all participants for a specific draw that the authenticated author has created. This read-only view allows draw authors to review participant information including name, surname, and email. The view includes breadcrumb navigation for easy navigation back to the dashboard and created draws list.
 
 **Key Features:**
+
 - Display participants in a responsive table format
 - Breadcrumb navigation showing the draw context
 - Loading state with spinner during data fetch
@@ -16,6 +17,7 @@ The Draw Details (Author) view displays a list of all participants for a specifi
 **Path:** `/dashboard/draws/[drawId]/participants`
 
 **Dynamic Parameter:**
+
 - `drawId` - UUID of the draw whose participants should be displayed
 
 **Example URL:** `/dashboard/draws/550e8400-e29b-41d4-a716-446655440000/participants`
@@ -36,6 +38,7 @@ src/pages/dashboard/draws/[drawId]/participants.astro (Astro Page)
 ```
 
 **File Structure:**
+
 ```
 src/
 ├── pages/
@@ -107,12 +110,13 @@ src/
 - **Handled validation:** None
 
 - **Types:**
+
   ```typescript
   interface BreadcrumbItem {
     label: string;
     href?: string; // undefined = current page (no link)
   }
-  
+
   interface BreadcrumbProps {
     items: BreadcrumbItem[];
   }
@@ -169,6 +173,7 @@ src/
 - **Handled validation:** None
 
 - **Types:**
+
   ```typescript
   interface ErrorAlertProps {
     title: string;
@@ -278,6 +283,7 @@ A custom hook encapsulates all data fetching logic and state management for this
 | `error` | `ApiErrorResponse \| null` | `null` | Stores API error if any |
 
 **Hook Interface:**
+
 ```typescript
 interface UseDrawParticipantsReturn {
   state: DrawParticipantsState;
@@ -290,6 +296,7 @@ function useDrawParticipants(drawId: string): UseDrawParticipantsReturn;
 ```
 
 **Hook Implementation Logic:**
+
 1. On mount, call `fetchParticipants()` via `useEffect`
 2. Set `isLoading: true` at start of fetch
 3. Make API call to `/api/draws/{drawId}/participants`
@@ -306,22 +313,24 @@ function useDrawParticipants(drawId: string): UseDrawParticipantsReturn;
 **Endpoint:** `GET /api/draws/{drawId}/participants`
 
 **Request:**
+
 - Method: GET
 - Headers: `Authorization: Bearer <token>` (handled by Supabase auth)
 - Path Parameter: `drawId` (UUID)
 
 **Response Types:**
 
-| Status | Type | Description |
-|--------|------|-------------|
-| 200 | `ParticipantDTO[]` | Success, array of participants |
-| 400 | `ApiErrorResponse` | Invalid drawId format |
-| 401 | `ApiErrorResponse` | Not authenticated |
-| 403 | `ApiErrorResponse` | User is not draw author |
-| 404 | `ApiErrorResponse` | Draw not found |
-| 500 | `ApiErrorResponse` | Server error |
+| Status | Type               | Description                    |
+| ------ | ------------------ | ------------------------------ |
+| 200    | `ParticipantDTO[]` | Success, array of participants |
+| 400    | `ApiErrorResponse` | Invalid drawId format          |
+| 401    | `ApiErrorResponse` | Not authenticated              |
+| 403    | `ApiErrorResponse` | User is not draw author        |
+| 404    | `ApiErrorResponse` | Draw not found                 |
+| 500    | `ApiErrorResponse` | Server error                   |
 
 **Success Response Example:**
+
 ```json
 [
   {
@@ -342,6 +351,7 @@ function useDrawParticipants(drawId: string): UseDrawParticipantsReturn;
 ```
 
 **Error Response Example:**
+
 ```json
 {
   "error": "Not Found",
@@ -354,12 +364,12 @@ function useDrawParticipants(drawId: string): UseDrawParticipantsReturn;
 ```typescript
 async function fetchParticipants(drawId: string): Promise<ParticipantDTO[]> {
   const response = await fetch(`/api/draws/${drawId}/participants`);
-  
+
   if (!response.ok) {
     const errorData: ApiErrorResponse = await response.json();
     throw new ApiError(response.status, errorData);
   }
-  
+
   return response.json();
 }
 ```
@@ -372,73 +382,73 @@ The current API only returns participants without draw metadata. Pass the draw n
 
 ### 8.1 Page Load
 
-| Step | Action | System Response |
-|------|--------|-----------------|
-| 1 | User navigates to `/dashboard/draws/{drawId}/participants` | Astro page loads |
-| 2 | React island mounts | Loading spinner displayed |
-| 3 | `useDrawParticipants` hook fetches data | API call made |
-| 4a | Success | Table renders with participant data |
-| 4b | Error | Error alert displayed with retry option |
+| Step | Action                                                     | System Response                         |
+| ---- | ---------------------------------------------------------- | --------------------------------------- |
+| 1    | User navigates to `/dashboard/draws/{drawId}/participants` | Astro page loads                        |
+| 2    | React island mounts                                        | Loading spinner displayed               |
+| 3    | `useDrawParticipants` hook fetches data                    | API call made                           |
+| 4a   | Success                                                    | Table renders with participant data     |
+| 4b   | Error                                                      | Error alert displayed with retry option |
 
 ### 8.2 Breadcrumb Navigation
 
-| Action | Result |
-|--------|--------|
-| Click "Dashboard" | Navigate to `/dashboard` |
+| Action                | Result                           |
+| --------------------- | -------------------------------- |
+| Click "Dashboard"     | Navigate to `/dashboard`         |
 | Click "Created Draws" | Navigate to `/dashboard/created` |
-| View current segment | No action (non-clickable) |
+| View current segment  | No action (non-clickable)        |
 
 ### 8.3 Error Retry
 
-| Step | Action | System Response |
-|------|--------|-----------------|
-| 1 | Error state displayed | Retry button visible |
-| 2 | User clicks "Try Again" | Loading spinner shown |
-| 3 | Re-fetch API call made | Data or error displayed |
+| Step | Action                  | System Response         |
+| ---- | ----------------------- | ----------------------- |
+| 1    | Error state displayed   | Retry button visible    |
+| 2    | User clicks "Try Again" | Loading spinner shown   |
+| 3    | Re-fetch API call made  | Data or error displayed |
 
 ### 8.4 Empty State
 
-| Condition | Display |
-|-----------|---------|
+| Condition                   | Display                                    |
+| --------------------------- | ------------------------------------------ |
 | `participants.length === 0` | Table with message "No participants found" |
 
 ## 9. Conditions and Validation
 
 ### 9.1 URL Parameter Validation
 
-| Condition | Component | Effect |
-|-----------|-----------|--------|
-| `drawId` is valid UUID | API validates | 400 error if invalid |
-| `drawId` is empty/missing | Astro routing | 404 page |
+| Condition                 | Component     | Effect               |
+| ------------------------- | ------------- | -------------------- |
+| `drawId` is valid UUID    | API validates | 400 error if invalid |
+| `drawId` is empty/missing | Astro routing | 404 page             |
 
 ### 9.2 Authorization Validation
 
-| Condition | Verification | Effect |
-|-----------|--------------|--------|
-| User is authenticated | API middleware | 401 redirect to login |
-| User is draw author | API authorization check | 403 error displayed |
+| Condition             | Verification            | Effect                |
+| --------------------- | ----------------------- | --------------------- |
+| User is authenticated | API middleware          | 401 redirect to login |
+| User is draw author   | API authorization check | 403 error displayed   |
 
 ### 9.3 UI State Conditions
 
-| State | isLoading | error | participants | Rendered Component |
-|-------|-----------|-------|--------------|-------------------|
-| Loading | `true` | `null` | `[]` | LoadingSpinner |
-| Success | `false` | `null` | `[...]` | ParticipantsTable |
-| Empty | `false` | `null` | `[]` | ParticipantsTable (empty state) |
-| Error | `false` | `{...}` | `[]` | ErrorAlert |
+| State   | isLoading | error   | participants | Rendered Component              |
+| ------- | --------- | ------- | ------------ | ------------------------------- |
+| Loading | `true`    | `null`  | `[]`         | LoadingSpinner                  |
+| Success | `false`   | `null`  | `[...]`      | ParticipantsTable               |
+| Empty   | `false`   | `null`  | `[]`         | ParticipantsTable (empty state) |
+| Error   | `false`   | `{...}` | `[]`         | ErrorAlert                      |
 
 ## 10. Error Handling
 
 ### 10.1 Error Scenarios
 
-| HTTP Status | Error Type | User Message | Action |
-|-------------|------------|--------------|--------|
-| 400 | Bad Request | "Invalid draw ID format" | Display error, no retry |
-| 401 | Unauthorized | "Please log in to view this page" | Redirect to `/login` |
-| 403 | Forbidden | "You don't have access to this draw" | Display error, link to dashboard |
-| 404 | Not Found | "Draw not found" | Display error, link to dashboard |
-| 500 | Server Error | "Something went wrong. Please try again." | Display error with retry button |
-| Network | Connection Error | "Unable to connect. Check your connection." | Display error with retry button |
+| HTTP Status | Error Type       | User Message                                | Action                           |
+| ----------- | ---------------- | ------------------------------------------- | -------------------------------- |
+| 400         | Bad Request      | "Invalid draw ID format"                    | Display error, no retry          |
+| 401         | Unauthorized     | "Please log in to view this page"           | Redirect to `/login`             |
+| 403         | Forbidden        | "You don't have access to this draw"        | Display error, link to dashboard |
+| 404         | Not Found        | "Draw not found"                            | Display error, link to dashboard |
+| 500         | Server Error     | "Something went wrong. Please try again."   | Display error with retry button  |
+| Network     | Connection Error | "Unable to connect. Check your connection." | Display error with retry button  |
 
 ### 10.2 Error Display Implementation
 
@@ -447,35 +457,35 @@ function getErrorDisplay(status: number, apiError: ApiErrorResponse) {
   switch (status) {
     case 401:
       // Redirect to login
-      window.location.href = '/login';
+      window.location.href = "/login";
       return null;
     case 403:
       return {
         title: "Access Denied",
         message: "You don't have permission to view this draw's participants.",
         showRetry: false,
-        showDashboardLink: true
+        showDashboardLink: true,
       };
     case 404:
       return {
         title: "Draw Not Found",
         message: "The draw you're looking for doesn't exist or has been removed.",
         showRetry: false,
-        showDashboardLink: true
+        showDashboardLink: true,
       };
     case 400:
       return {
         title: "Invalid Request",
         message: apiError.message,
         showRetry: false,
-        showDashboardLink: true
+        showDashboardLink: true,
       };
     default:
       return {
         title: "Something Went Wrong",
         message: "We couldn't load the participants. Please try again.",
         showRetry: true,
-        showDashboardLink: false
+        showDashboardLink: false,
       };
   }
 }
@@ -600,4 +610,3 @@ Wrap the `DrawParticipantsView` component in an ErrorBoundary to catch unexpecte
 - [ ] Verify responsive design
 - [ ] Test accessibility (keyboard, screen reader)
 - [ ] Connect navigation from Created Draws list
-

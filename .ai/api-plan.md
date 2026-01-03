@@ -1,6 +1,7 @@
 # REST API Plan
 
 ## 1. Resources
+
 - **Users** (`users` table)
 - **Draws** (`draws` table)
 - **Participants** (`draw_participants` table)
@@ -12,26 +13,27 @@
 ### 2.1 Draws & Participants
 
 #### Create Draw with Participants
+
 - Method: POST
 - Path: /api/draws
 - Description: Create a draw with 3–32 participants
 - Request:
   {
-    "name": "string",
-    "participants": [
-      {
-        "name": "string",
-        "surname": "string",
-        "email": "string",
-        "gift_preferences": "string (max 10000 chars)"
-      }, ...
-    ]
+  "name": "string",
+  "participants": [
+  {
+  "name": "string",
+  "surname": "string",
+  "email": "string",
+  "gift_preferences": "string (max 10000 chars)"
+  }, ...
+  ]
   }
 - Response 201:
   {
-    "id": "UUID",
-    "name": "string",
-    "created_at": "timestamp"
+  "id": "UUID",
+  "name": "string",
+  "created_at": "timestamp"
   }
 - Validation:
   - participants.length between 3 and 32
@@ -40,6 +42,7 @@
   - 400: validation errors
 
 #### Get Author's Draws
+
 - Method: GET
 - Path: /api/draws
 - Description: List draws for current author
@@ -51,6 +54,7 @@
   - 401: unauthorized
 
 #### Get Draw Participants
+
 - Method: GET
 - Path: /api/draws/{drawId}/participants
 - Description: List participants in a draw
@@ -60,10 +64,10 @@
   - 404: draw not found
   - 403: forbidden
 
-
 ### 2.2 Matching
 
 #### Run Matching Algorithm
+
 - Method: POST
 - Path: /api/draws/{drawId}/match
 - Description: Generate matches, provision accounts
@@ -77,6 +81,7 @@
 ### 2.3 AI Gift Suggestions
 
 #### List Participant Matches
+
 - Method: GET
 - Path: /api/me/matches
 - Description: List all matches for the current participant
@@ -84,40 +89,42 @@
   - page (int), size (int), sort (string)
 - Response 200:
   [
-    {
-      "match_id": "UUID",
-      "draw_id": "UUID",
-      "recipient": {
-        "name": "string",
-        "surname": "string",
-        "email": "string"
-      }
-    }, ...
+  {
+  "match_id": "UUID",
+  "draw_id": "UUID",
+  "recipient": {
+  "name": "string",
+  "surname": "string",
+  "email": "string"
+  }
+  }, ...
   ]
 - Errors:
   - 401: unauthorized
 
 #### Get Match Details
+
 - Method: GET
 - Path: /api/me/matches/{matchId}
 - Description: Get details of a specific match for the current participant
 - Response 200:
   {
-    "match_id": "UUID",
-    "draw_id": "UUID",
-    "recipient": {
-      "id": "UUID",
-      "name": "string",
-      "surname": "string",
-      "email": "string",
-      "gift_preferences": "string"
-    }
+  "match_id": "UUID",
+  "draw_id": "UUID",
+  "recipient": {
+  "id": "UUID",
+  "name": "string",
+  "surname": "string",
+  "email": "string",
+  "gift_preferences": "string"
+  }
   }
 - Errors:
   - 404: match not found or forbidden
   - 401: unauthorized
 
 #### Get AI Suggestions for a Match
+
 - Method: GET
 - Path: /api/me/matches/{matchId}/suggestions
 - Description: Return cached or fresh AI suggestions for a specific match
@@ -130,17 +137,18 @@
   - 502: AI service timeout after 30s
   - 500: internal error
 
-
 ## 3. Authentication and Authorization
+
 - Token based Supabase Auth.
 - Middleware verifies token and sets `auth.user_id` and `auth.role`.
 - Authorization:
   - Authors can access /api/draws and sub-resources they own.
-  - Participants can only access /api/me/* endpoints.
+  - Participants can only access /api/me/\* endpoints.
   - Participatns also can create own draws
 - RLS policies enforce row-level access in the database.
 
 ## 4. Validation and Business Logic
+
 - **Draw creation**: 3≤participants≤32, gift_preferences≤10000.
 - **No draw modification/deletion**: no PUT/DELETE on /api/draws.
 - **Matching**: Enforce uniqueness and no self-match; uses DB constraints (UNIQUE, CHECK).
@@ -150,6 +158,8 @@
 - **Pagination/Filtering**: List endpoints support `page`, `size`, `sort`, and filters by `name`, `email` where applicable.
 
 ---
-*Assumptions:*
+
+_Assumptions:_
+
 - Using Express.js / Node.js with Supabase SDK.
 - All errors return JSON `{ code, message, details? }`.

@@ -273,5 +273,3 @@ describe("mapAuthError", () => {
     });
   });
 });
-
-

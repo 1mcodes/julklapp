@@ -214,9 +214,7 @@ describe("registerSchema", () => {
     const result = registerSchema.safeParse(invalidRegistration);
     expect(result.success).toBe(false);
     if (!result.success) {
-      const confirmPasswordError = result.error.errors.find(
-        (err) => err.path[0] === "confirmPassword"
-      );
+      const confirmPasswordError = result.error.errors.find((err) => err.path[0] === "confirmPassword");
       expect(confirmPasswordError?.message).toBe("Passwords don't match");
     }
   });
@@ -442,9 +440,7 @@ describe("resetPasswordSchema", () => {
     const result = resetPasswordSchema.safeParse(invalidResetPassword);
     expect(result.success).toBe(false);
     if (!result.success) {
-      const confirmPasswordError = result.error.errors.find(
-        (err) => err.path[0] === "confirmPassword"
-      );
+      const confirmPasswordError = result.error.errors.find((err) => err.path[0] === "confirmPassword");
       expect(confirmPasswordError?.message).toBe("Passwords don't match");
     }
   });
@@ -573,9 +569,7 @@ describe("setPasswordSchema", () => {
     const result = setPasswordSchema.safeParse(invalidSetPassword);
     expect(result.success).toBe(false);
     if (!result.success) {
-      const confirmPasswordError = result.error.errors.find(
-        (err) => err.path[0] === "confirmPassword"
-      );
+      const confirmPasswordError = result.error.errors.find((err) => err.path[0] === "confirmPassword");
       expect(confirmPasswordError?.message).toBe("Passwords don't match");
     }
   });
@@ -638,5 +632,3 @@ describe("setPasswordSchema", () => {
     expect(result.success).toBe(false);
   });
 });
-
-

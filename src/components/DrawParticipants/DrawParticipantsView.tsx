@@ -33,7 +33,9 @@ const DrawParticipantsView: React.FC<DrawParticipantsViewProps> = ({ drawId, dra
       <div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900" data-test-id="draw-title">{drawName || "Draw Participants"}</h1>
+            <h1 className="text-3xl font-bold text-gray-900" data-test-id="draw-title">
+              {drawName || "Draw Participants"}
+            </h1>
             <p className="mt-2 text-gray-600">View all participants in this draw.</p>
           </div>
           {state.hasMatches && !state.isLoading && <MatchStatusBadge />}
@@ -49,7 +51,12 @@ const DrawParticipantsView: React.FC<DrawParticipantsViewProps> = ({ drawId, dra
 
       {/* Loading State */}
       {state.isLoading && (
-        <div className="flex items-center justify-center py-12" role="status" aria-live="polite" data-test-id="participants-loading">
+        <div
+          className="flex items-center justify-center py-12"
+          role="status"
+          aria-live="polite"
+          data-test-id="participants-loading"
+        >
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" aria-hidden="true" />
           <span className="sr-only">Loading participants...</span>
         </div>
@@ -57,7 +64,12 @@ const DrawParticipantsView: React.FC<DrawParticipantsViewProps> = ({ drawId, dra
 
       {/* Error State */}
       {!state.isLoading && state.error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6" role="alert" aria-live="assertive" data-test-id="participants-error">
+        <div
+          className="rounded-lg border border-red-200 bg-red-50 p-6"
+          role="alert"
+          aria-live="assertive"
+          data-test-id="participants-error"
+        >
           <p className="font-medium text-red-800">Error loading participants</p>
           <p className="mt-1 text-sm text-red-700">{state.error.message}</p>
           {(state.httpStatus === 500 || state.httpStatus === null) && (
@@ -74,8 +86,15 @@ const DrawParticipantsView: React.FC<DrawParticipantsViewProps> = ({ drawId, dra
 
       {/* Success State - Participants Table */}
       {!state.isLoading && !state.error && (
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm" data-test-id="participants-table-container">
-          <table className="min-w-full divide-y divide-gray-200" aria-label="Participants list" data-test-id="participants-table">
+        <div
+          className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm"
+          data-test-id="participants-table-container"
+        >
+          <table
+            className="min-w-full divide-y divide-gray-200"
+            aria-label="Participants list"
+            data-test-id="participants-table"
+          >
             <thead className="bg-gray-50">
               <tr>
                 <th
@@ -107,10 +126,23 @@ const DrawParticipantsView: React.FC<DrawParticipantsViewProps> = ({ drawId, dra
                 </tr>
               ) : (
                 state.participants.map((participant) => (
-                  <tr key={participant.id} className="hover:bg-gray-50" data-test-id={`participant-row-${participant.id}`}>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900" data-test-id="participant-name">{participant.name}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900" data-test-id="participant-surname">{participant.surname}</td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500" data-test-id="participant-email">{participant.email}</td>
+                  <tr
+                    key={participant.id}
+                    className="hover:bg-gray-50"
+                    data-test-id={`participant-row-${participant.id}`}
+                  >
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900" data-test-id="participant-name">
+                      {participant.name}
+                    </td>
+                    <td
+                      className="whitespace-nowrap px-6 py-4 text-sm text-gray-900"
+                      data-test-id="participant-surname"
+                    >
+                      {participant.surname}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500" data-test-id="participant-email">
+                      {participant.email}
+                    </td>
                   </tr>
                 ))
               )}

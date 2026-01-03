@@ -27,9 +27,14 @@ export async function requireAuth(Astro: AstroGlobal): Promise<AuthUser> {
     return Astro.redirect(`/login?redirect=${encodeURIComponent(redirectUrl)}`);
   }
 
+  if (!user.email) {
+    const redirectUrl = Astro.url.pathname + Astro.url.search;
+    return Astro.redirect(`/login?redirect=${encodeURIComponent(redirectUrl)}`);
+  }
+
   return {
     id: user.id,
-    email: user.email!,
+    email: user.email,
     emailConfirmed: !!user.email_confirmed_at,
   };
 }
@@ -46,13 +51,13 @@ export async function getSession(Astro: AstroGlobal): Promise<AuthUser | null> {
     error,
   } = await Astro.locals.supabase.auth.getUser();
 
-  if (error || !user) {
+  if (error || !user || !user.email) {
     return null;
   }
 
   return {
     id: user.id,
-    email: user.email!,
+    email: user.email,
     emailConfirmed: !!user.email_confirmed_at,
   };
 }

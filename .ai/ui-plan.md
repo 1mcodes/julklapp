@@ -1,11 +1,14 @@
 # UI Architecture for JulklApp
 
 ## 1. UI Structure Overview
+
 JulklApp provides two top-level entry points:
+
 - **/login**: unified authentication for draw authors and participants.
 - **/dashboard**: a single-page dashboard built with Astro Islands. It hosts three main tab-driven sub-views—Create New Draw, Created Draws, and Participated Draws—switchable via a responsive TabNav component. Detail views extend the dashboard layout with contextual breadcrumbs.
 
 Global UI patterns:
+
 - Floating toasts for notifications (success and error), auto-dismiss after 6s, manual close.
 - Spinners and button disabling during API calls.
 - Responsive Tailwind grids and horizontal scrolling containers with edge shadows for tables.
@@ -16,6 +19,7 @@ Global UI patterns:
 ## 2. View List
 
 ### Login Page
+
 - **Path**: `/login`
 - **Purpose**: Authenticate authors and participants.
 - **Key Information**:
@@ -32,6 +36,7 @@ Global UI patterns:
   - Password field uses `type="password"`.
 
 ### Dashboard Container
+
 - **Path**: `/dashboard`
 - **Purpose**: Hosts tab navigation and sub-views.
 - **Key Information**:
@@ -44,6 +49,7 @@ Global UI patterns:
   - Keyboard accessible (arrow key navigation).
 
 ### Create New Draw
+
 - **Path**: `/dashboard/create`
 - **Purpose**: Enable authors to create a draw and add participants.
 - **Key Information**:
@@ -61,6 +67,7 @@ Global UI patterns:
   - Responsive two-column grid for participant fields on desktop, stacked on mobile.
 
 ### Created Draws
+
 - **Path**: `/dashboard/created`
 - **Purpose**: List draws authored by the current user.
 - **Key Information**:
@@ -75,6 +82,7 @@ Global UI patterns:
   - Accessible table semantics (`<table>`, `<thead>`, `<tbody>`).
 
 ### Participated Draws
+
 - **Path**: `/dashboard/participated`
 - **Purpose**: List matches for the current participant.
 - **Key Information**:
@@ -87,6 +95,7 @@ Global UI patterns:
   - Mirror Created Draws behavior for consistency.
 
 ### Draw Details (Author)
+
 - **Path**: `/dashboard/draws/{drawId}/participants`
 - **Purpose**: Show participants of a specific draw.
 - **Key Information**:
@@ -103,6 +112,7 @@ Global UI patterns:
   - Static rows; clickable only via Details icon on parent list.
 
 ### Match Details (Participant)
+
 - **Path**: `/dashboard/matches/{matchId}`
 - **Purpose**: Show the participant’s assigned match and gift suggestions.
 - **Key Information**:
@@ -122,6 +132,7 @@ Global UI patterns:
   - Accessible labels and focus order.
 
 ### Global Error View
+
 - **Path**: `*` (404, 500)
 - **Purpose**: Display generic error or not-found.
 - **Key Information**:
@@ -134,6 +145,7 @@ Global UI patterns:
   - Clear messaging, accessible focus trap.
 
 ## 3. User Journey Map
+
 1. **Login**: User arrives at `/login`, submits credentials.
 2. **Success Toast + Redirect**: Show “Login successful” toast, redirect to `/dashboard/participated`.
 3. **Default Tab**: Participated Draws tab loads lazily; show spinner then data or empty state.
@@ -142,6 +154,7 @@ Global UI patterns:
 6. **Author Flow**: In Dashboard, click Created Draws tab → view list → click Create New Draw → fill form → submit → spinner → success toast → redirect to `/dashboard/draws/{drawId}` → view participant table.
 
 ## 4. Layout and Navigation Structure
+
 - **Global Layout**: Header-less design; main content occupies full viewport.
 - **Dashboard Layout**:
   - `Breadcrumb` at top
@@ -156,6 +169,7 @@ Global UI patterns:
   - Last segment is plain text
 
 ## 5. Key Components
+
 - `LoginForm`: manages inputs, handles submission, shows inline errors.
 - `ToastContainer`: renders toaster stack (max 3) with auto-dismiss and manual close.
 - `TabNav`: accessible tab list with active indicator.
@@ -169,4 +183,5 @@ Global UI patterns:
 - `ErrorBoundary`: wraps islands and shows retry UI.
 
 ---
+
 This UI architecture aligns with the API endpoints for draw creation, listing, matching, and AI suggestions, covers all PRD user stories, and addresses key usability, accessibility, and error-handling considerations.

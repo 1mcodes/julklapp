@@ -13,30 +13,32 @@
 10. MVP success criterion: every participant has one assigned match; AI suggestions are optional.
 </decisions>
 
-<matched_recommendations> 
-1. Map detailed user journeys for draw creation, participant onboarding, and result viewing.  
-2. Wrap all front-end strings in an i18n abstraction to future-proof localization.  
-3. Enforce participant count constraints (3–32) and implement validation to prevent self-matching.  
-4. Specify input schema for gift preferences (plain text, 10 000-character limit) 
-5. Establish caching and manual refresh logic for AI suggestions (infinite TTL with refresh button).  
-6. Draft and test RLS policies to restrict draw management to authors and match visibility to participants.  
-7. Implement error-handling and retry logic (3 retries, 30 s timeout) for AI calls.    
-8. Limit gift preference input to plain text to simplify sanitization.  
+<matched_recommendations>
+
+1. Map detailed user journeys for draw creation, participant onboarding, and result viewing.
+2. Wrap all front-end strings in an i18n abstraction to future-proof localization.
+3. Enforce participant count constraints (3–32) and implement validation to prevent self-matching.
+4. Specify input schema for gift preferences (plain text, 10 000-character limit)
+5. Establish caching and manual refresh logic for AI suggestions (infinite TTL with refresh button).
+6. Draft and test RLS policies to restrict draw management to authors and match visibility to participants.
+7. Implement error-handling and retry logic (3 retries, 30 s timeout) for AI calls.
+8. Limit gift preference input to plain text to simplify sanitization.
 9. Adopt centralized .env-based secret management for API keys and environment configuration.  
-</matched_recommendations>
+   </matched_recommendations>
 
 <prd_planning_summary>
 The MVP enables a registered draw author to create a Secret Santa event for 3–32 participants by entering names, surnames, and a free-text gift-preferences letter (up to 10 000 chars). After the draw, each participant is auto-provisioned an account for which user will set password on first login attempt. Authors cannot modify or delete draws once created.
 
 Participants log in to view their assigned match and an AI-generated gift-suggestion summary. Suggestions are fetched via an XHR call to OpenRouter (configured via .env), cached indefinitely, and can be refreshed on demand without rate limiting. The UI is English-only but built on an i18n layer for future localization.
 
-Security is enforced with email/password auth, input validation, and database row-level security to ensure authors see only their draws and participants see only their match. AI calls include up to three retries with a 30 s timeout. 
+Security is enforced with email/password auth, input validation, and database row-level security to ensure authors see only their draws and participants see only their match. AI calls include up to three retries with a 30 s timeout.
 
 The sole success metric for MVP is that every participant has exactly one distinct match; AI suggestions are optional and do not affect success measurement.
 </prd_planning_summary>
 
 <unresolved_issues>
-- Detailed design and enforcement of row-level security policies.    
+
+- Detailed design and enforcement of row-level security policies.
 - UX design for AI-failure error states and user messaging.
-</unresolved_issues>
-</conversation_summary>
+  </unresolved_issues>
+  </conversation_summary>
