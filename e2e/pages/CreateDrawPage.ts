@@ -12,12 +12,10 @@ export class CreateDrawPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    // Use fallback selectors that work with both server and client rendering
-    this.drawNameInput = page.locator('input[type="text"], [data-test-id="draw-name-input"]').first();
-    this.addParticipantButton = page
-      .locator('button:has-text("Add Participant"), [data-test-id="add-participant-button"]')
-      .first();
-    this.createDrawButton = page.locator('button:has-text("Create Draw"), [data-test-id="create-draw-button"]').first();
+    // Use data-test-id first, then fallback to input type
+    this.drawNameInput = page.getByTestId('draw-name-input').or(page.locator('input[type="text"][id="draw-name"]')).first();
+    this.addParticipantButton = page.getByTestId('add-participant-button').or(page.locator('button:has-text("Add Participant")')).first();
+    this.createDrawButton = page.getByTestId('create-draw-button').or(page.locator('button:has-text("Create Draw")')).first();
   }
 
   /**
