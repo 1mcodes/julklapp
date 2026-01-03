@@ -1,4 +1,4 @@
-# JulklApp - just test change
+# JulklApp
 
 [![Version](https://img.shields.io/badge/version-0.0.1-blue.svg)](https://github.com/your-org/your-repo) [![License](https://img.shields.io/badge/license-MIT-green.svg)]
 
