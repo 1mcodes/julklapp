@@ -12,13 +12,13 @@ export class DrawParticipantsPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.participantsTableContainer = page.getByTestId('participants-table-container');
-    this.participantsTable = page.getByTestId('participants-table');
-    this.tableBody = this.participantsTable.locator('tbody');
+    this.participantsTableContainer = page.getByTestId("participants-table-container");
+    this.participantsTable = page.getByTestId("participants-table");
+    this.tableBody = this.participantsTable.locator("tbody");
     this.participantRows = this.tableBody.locator('[data-test-id^="participant-row-"]');
-    this.loadingSpinner = page.getByTestId('participants-loading');
-    this.errorMessage = page.getByTestId('participants-error');
-    this.drawTitle = page.getByTestId('draw-title');
+    this.loadingSpinner = page.getByTestId("participants-loading");
+    this.errorMessage = page.getByTestId("participants-error");
+    this.drawTitle = page.getByTestId("draw-title");
   }
 
   /**
@@ -32,7 +32,7 @@ export class DrawParticipantsPage extends BasePage {
    * Wait for the participants to load
    */
   async waitForParticipantsToLoad() {
-    await this.loadingSpinner.waitFor({ state: 'hidden' });
+    await this.loadingSpinner.waitFor({ state: "hidden" });
   }
 
   /**
@@ -49,21 +49,21 @@ export class DrawParticipantsPage extends BasePage {
   async getParticipantData(rowIndex: number): Promise<{ name: string; surname: string; email: string }> {
     await this.waitForParticipantsToLoad();
     const row = this.participantRows.nth(rowIndex);
-    const name = await row.getByTestId('participant-name').textContent();
-    const surname = await row.getByTestId('participant-surname').textContent();
-    const email = await row.getByTestId('participant-email').textContent();
+    const name = await row.getByTestId("participant-name").textContent();
+    const surname = await row.getByTestId("participant-surname").textContent();
+    const email = await row.getByTestId("participant-email").textContent();
 
     return {
-      name: name?.trim() || '',
-      surname: surname?.trim() || '',
-      email: email?.trim() || ''
+      name: name?.trim() || "",
+      surname: surname?.trim() || "",
+      email: email?.trim() || "",
     };
   }
 
   /**
    * Get all participants data
    */
-  async getAllParticipants(): Promise<Array<{ name: string; surname: string; email: string }>> {
+  async getAllParticipants(): Promise<{ name: string; surname: string; email: string }[]> {
     const count = await this.getParticipantCount();
     const participants = [];
 
@@ -79,18 +79,14 @@ export class DrawParticipantsPage extends BasePage {
    */
   async hasParticipant(firstName: string, lastName: string, email: string): Promise<boolean> {
     const participants = await this.getAllParticipants();
-    return participants.some(p =>
-      p.name === firstName &&
-      p.surname === lastName &&
-      p.email === email
-    );
+    return participants.some((p) => p.name === firstName && p.surname === lastName && p.email === email);
   }
 
   /**
    * Get the draw title
    */
   async getDrawTitle(): Promise<string> {
-    return await this.drawTitle.textContent() || '';
+    return (await this.drawTitle.textContent()) || "";
   }
 
   /**

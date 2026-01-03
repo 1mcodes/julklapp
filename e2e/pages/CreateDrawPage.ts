@@ -13,9 +13,18 @@ export class CreateDrawPage extends BasePage {
   constructor(page: Page) {
     super(page);
     // Use data-test-id first, then fallback to input type
-    this.drawNameInput = page.getByTestId('draw-name-input').or(page.locator('input[type="text"][id="draw-name"]')).first();
-    this.addParticipantButton = page.getByTestId('add-participant-button').or(page.locator('button:has-text("Add Participant")')).first();
-    this.createDrawButton = page.getByTestId('create-draw-button').or(page.locator('button:has-text("Create Draw")')).first();
+    this.drawNameInput = page
+      .getByTestId("draw-name-input")
+      .or(page.locator('input[type="text"][id="draw-name"]'))
+      .first();
+    this.addParticipantButton = page
+      .getByTestId("add-participant-button")
+      .or(page.locator('button:has-text("Add Participant")'))
+      .first();
+    this.createDrawButton = page
+      .getByTestId("create-draw-button")
+      .or(page.locator('button:has-text("Create Draw")'))
+      .first();
   }
 
   /**
@@ -37,17 +46,11 @@ export class CreateDrawPage extends BasePage {
    */
   getParticipantLocators(index: number) {
     return {
-      firstName: this.page
-        .locator(`input[placeholder*="first name"], [data-test-id="participant-${index}-first-name"]`)
-        .first(),
-      lastName: this.page
-        .locator(`input[placeholder*="last name"], [data-test-id="participant-${index}-last-name"]`)
-        .first(),
-      email: this.page.locator(`input[type="email"], [data-test-id="participant-${index}-email"]`).first(),
-      giftPreferences: this.page.locator(`textarea, [data-test-id="participant-${index}-gift-preferences"]`).first(),
-      removeButton: this.page
-        .locator(`button:has-text("Remove"), [data-test-id="remove-participant-${index}-button"]`)
-        .first(),
+      firstName: this.page.locator(`[data-test-id="participant-${index}-first-name"]`).first(),
+      lastName: this.page.locator(`[data-test-id="participant-${index}-last-name"]`).first(),
+      email: this.page.locator(`[data-test-id="participant-${index}-email"]`).first(),
+      giftPreferences: this.page.locator(`[data-test-id="participant-${index}-gift-preferences"]`).first(),
+      removeButton: this.page.locator(`[data-test-id="remove-participant-${index}-button"]`).first(),
     };
   }
 
