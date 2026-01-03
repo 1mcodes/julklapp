@@ -114,6 +114,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard/created
           aria-required="true"
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "email-error" : undefined}
+          data-test-id="login-email-input"
         />
         {errors.email && (
           <p id="email-error" className="text-sm text-red-600" role="alert">
@@ -142,6 +143,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard/created
           aria-required="true"
           aria-invalid={!!errors.password}
           aria-describedby={errors.password ? "password-error" : undefined}
+          data-test-id="login-password-input"
         />
         {errors.password && (
           <p id="password-error" className="text-sm text-red-600" role="alert">
@@ -172,6 +174,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = "/dashboard/created
         disabled={isSubmitting}
         className="w-full flex items-center justify-center gap-2"
         aria-describedby={isSubmitting ? "submit-status" : undefined}
+        data-test-id="login-submit-button"
       >
         {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
         {isSubmitting ? "Logging in..." : "Log In"}

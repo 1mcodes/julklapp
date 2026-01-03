@@ -55,6 +55,7 @@ const DrawForm: React.FC = () => {
           aria-required="true"
           aria-invalid={!!state.nameError}
           aria-describedby={state.nameError ? "draw-name-error" : undefined}
+          data-test-id="draw-name-input"
         />
         {state.nameError && (
           <p id="draw-name-error" className="text-sm text-red-600" role="alert">
@@ -75,6 +76,7 @@ const DrawForm: React.FC = () => {
             disabled={!canAddParticipant || state.isSubmitting}
             className="flex items-center gap-2"
             aria-label={canAddParticipant ? "Add another participant" : "Maximum participants reached (32)"}
+            data-test-id="add-participant-button"
           >
             <Plus className="h-4 w-4" />
             Add Participant
@@ -121,6 +123,7 @@ const DrawForm: React.FC = () => {
           disabled={state.isSubmitting || !state.name.trim() || state.participants.length < 3}
           className="flex items-center gap-2"
           aria-describedby={state.isSubmitting ? "submit-status" : undefined}
+          data-test-id="create-draw-button"
         >
           {state.isSubmitting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
           {state.isSubmitting ? "Creating Draw..." : "Create Draw"}
@@ -170,6 +173,7 @@ const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
             disabled={disabled}
             className="text-red-600 hover:text-red-700 hover:bg-red-50"
             aria-label={`Remove participant ${index + 1}`}
+            data-test-id={`remove-participant-${index}-button`}
           >
             <Trash2 className="h-4 w-4" />
             <span className="sr-only">Remove participant {index + 1}</span>
@@ -194,6 +198,7 @@ const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
             aria-required="true"
             aria-invalid={!!participant.errors?.name}
             aria-describedby={participant.errors?.name ? `name-error-${index}` : undefined}
+            data-test-id={`participant-${index}-first-name`}
           />
           {participant.errors?.name && (
             <p id={`name-error-${index}`} className="text-sm text-red-600" role="alert">
@@ -218,6 +223,7 @@ const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
             aria-required="true"
             aria-invalid={!!participant.errors?.surname}
             aria-describedby={participant.errors?.surname ? `surname-error-${index}` : undefined}
+            data-test-id={`participant-${index}-last-name`}
           />
           {participant.errors?.surname && (
             <p id={`surname-error-${index}`} className="text-sm text-red-600" role="alert">
@@ -242,6 +248,7 @@ const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
             aria-required="true"
             aria-invalid={!!participant.errors?.email}
             aria-describedby={participant.errors?.email ? `email-error-${index}` : undefined}
+            data-test-id={`participant-${index}-email`}
           />
           {participant.errors?.email && (
             <p id={`email-error-${index}`} className="text-sm text-red-600" role="alert">
@@ -270,6 +277,7 @@ const ParticipantFieldGroup: React.FC<ParticipantFieldGroupProps> = ({
             aria-describedby={
               participant.errors?.giftPreferences ? `giftPreferences-error-${index}` : `giftPreferences-help-${index}`
             }
+            data-test-id={`participant-${index}-gift-preferences`}
           />
           {participant.errors?.giftPreferences && (
             <p id={`giftPreferences-error-${index}`} className="text-sm text-red-600" role="alert">
