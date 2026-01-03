@@ -1,0 +1,61 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test
+
+  status-comment:
+    runs-on: ubuntu-latest
+    needs: [linting, unit-test]
+    if: always() && (needs.linting.result == 'success' && needs.unit-test.result == 'success' && needs.e2e-test.result == 'success')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Comment PR with success status
+        uses: actions/github-script@v8
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ All checks passed!\n\n- ✅ Linting\n- ✅ Unit tests\n\nThe pull request is ready for review.'
+            })
