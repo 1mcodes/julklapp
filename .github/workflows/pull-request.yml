@@ -8,38 +8,14 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: ".nvmrc"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
       - name: Run linting
-        run: npm run lint
+        uses: ./.github/actions/lint
 
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: ".nvmrc"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
       - name: Run unit tests
-        run: npm run test
+        uses: ./.github/actions/test
 
   status-comment:
     runs-on: ubuntu-latest

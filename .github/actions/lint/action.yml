@@ -1,0 +1,22 @@
+name: 'Lint'
+description: 'Run linting checks'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version-file: ".nvmrc"
+        cache: "npm"
+
+    - name: Install dependencies
+      run: npm ci
+      shell: bash
+
+    - name: Run linting
+      run: npm run lint
+      shell: bash
