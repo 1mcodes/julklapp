@@ -8,11 +8,17 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
       - name: Run linting
         uses: ./.github/actions/lint
 
   unit-test:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
       - name: Run unit tests
         uses: ./.github/actions/test
