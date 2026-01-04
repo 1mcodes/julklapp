@@ -27,6 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [linting, unit-test]
     if: always() && (needs.linting.result == 'success' && needs.unit-test.result == 'success')
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
