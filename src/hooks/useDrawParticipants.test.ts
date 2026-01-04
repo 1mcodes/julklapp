@@ -21,6 +21,12 @@ describe("useDrawParticipants", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock fetch to resolve immediately to prevent act() warnings from initial render
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ participants: [], has_matches: false }),
+    });
   });
 
   afterEach(() => {
@@ -396,7 +402,10 @@ describe("useDrawParticipants", () => {
           })
       );
 
-      const refetchPromise = result.current.actions.refetch();
+      let refetchPromise: Promise<void>;
+      await act(async () => {
+        refetchPromise = result.current.actions.refetch();
+      });
 
       // Should be loading immediately after calling refetch
       await waitFor(() => {
@@ -429,7 +438,9 @@ describe("useDrawParticipants", () => {
       expect(fetchMock).toHaveBeenCalledWith(`/api/draws/${drawId1}/participants`);
 
       // Change drawId
-      rerender({ id: drawId2 });
+      act(() => {
+        rerender({ id: drawId2 });
+      });
 
       await waitFor(() => {
         expect(fetchMock).toHaveBeenCalledWith(`/api/draws/${drawId2}/participants`);
@@ -485,7 +496,9 @@ describe("useDrawParticipants", () => {
       });
 
       // Execute matching
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
@@ -528,7 +541,10 @@ describe("useDrawParticipants", () => {
           })
       );
 
-      const matchingPromise = result.current.actions.executeMatching();
+      let matchingPromise: Promise<void>;
+      await act(async () => {
+        matchingPromise = result.current.actions.executeMatching();
+      });
 
       // Should be matching immediately
       await waitFor(() => {
@@ -650,7 +666,9 @@ describe("useDrawParticipants", () => {
         json: async () => mockError,
       });
 
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
@@ -850,7 +868,9 @@ describe("useDrawParticipants", () => {
         json: async () => mockError,
       });
 
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
@@ -895,7 +915,9 @@ describe("useDrawParticipants", () => {
         json: async () => ({ error: "Server Error", message: "Failed to generate matches" }),
       });
 
-      await result.current.actions.executeMatching();
+      await act(async () => {
+        await result.current.actions.executeMatching();
+      });
 
       await waitFor(() => {
         expect(result.current.state.isMatching).toBe(false);
@@ -964,11 +986,12 @@ describe("useDrawParticipants", () => {
       });
 
       // Call refetch multiple times rapidly
-      const promises = [
-        result.current.actions.refetch(),
-        result.current.actions.refetch(),
-        result.current.actions.refetch(),
-      ];
+      const promises: Promise<void>[] = [];
+      await act(async () => {
+        promises.push(result.current.actions.refetch());
+        promises.push(result.current.actions.refetch());
+        promises.push(result.current.actions.refetch());
+      });
 
       await Promise.all(promises);
 
@@ -1120,7 +1143,9 @@ describe("useDrawParticipants", () => {
 
       const firstRefetch = result.current.actions.refetch;
 
-      rerender();
+      act(() => {
+        rerender();
+      });
 
       const secondRefetch = result.current.actions.refetch;
 
@@ -1138,7 +1163,9 @@ describe("useDrawParticipants", () => {
 
       const firstExecuteMatching = result.current.actions.executeMatching;
 
-      rerender();
+      act(() => {
+        rerender();
+      });
 
       const secondExecuteMatching = result.current.actions.executeMatching;
 
@@ -1216,7 +1243,9 @@ describe("useDrawParticipants", () => {
       });
 
       // Execute both operations concurrently
-      await Promise.all([result.current.actions.refetch(), result.current.actions.executeMatching()]);
+      await act(async () => {
+        await Promise.all([result.current.actions.refetch(), result.current.actions.executeMatching()]);
+      });
 
       await waitFor(() => {
         expect(result.current.state.isLoading).toBe(false);
@@ -1249,11 +1278,12 @@ describe("useDrawParticipants", () => {
       });
 
       // Execute multiple matching operations
-      const promises = [
-        result.current.actions.executeMatching(),
-        result.current.actions.executeMatching(),
-        result.current.actions.executeMatching(),
-      ];
+      const promises: Promise<void>[] = [];
+      await act(async () => {
+        promises.push(result.current.actions.executeMatching());
+        promises.push(result.current.actions.executeMatching());
+        promises.push(result.current.actions.executeMatching());
+      });
 
       await Promise.all(promises);
 
@@ -1331,7 +1361,10 @@ describe("useDrawParticipants", () => {
           })
       );
 
-      const matchingPromise = result.current.actions.executeMatching();
+      let matchingPromise: Promise<void>;
+      await act(async () => {
+        matchingPromise = result.current.actions.executeMatching();
+      });
 
       // Verify matching state is set
       await waitFor(() => {

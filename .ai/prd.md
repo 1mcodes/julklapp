@@ -2,7 +2,7 @@
 
 ## 1. Product Overview
 
-JulklApp is a web application that automates the creation and management of Secret Santa events (draws) for small groups (3–32 participants). Draw authors can register, create events, and input participant details. After conducting the draw, participants are auto-provisioned accounts and can log in to view their assigned recipient along with AI-generated gift suggestions based on free-text preference letters. The application emphasizes simplicity, security, and future localization support.
+JulklApp is a web application that automates the creation and management of Secret Santa events (draws) for small groups (3–32 participants). Draw authors can register, create events, and input participant details. After conducting the draw, participants are auto-provisioned accounts and can log in to view their assigned recipient. The application emphasizes simplicity, security, and future localization support. **Note: AI-generated gift suggestions are not planned for MVP.**
 
 ## 2. User Problem
 
@@ -11,7 +11,6 @@ Friends and families organizing Secret Santa lack a simple, secure tool to:
 - Collect participant information (name, surname, email, gift preferences).
 - Ensure fair, one-to-one matching without self-matches.
 - Share match results privately with each participant.
-- Generate and display personalized gift suggestions without manual effort.
 - Manage events without complex manual coordination or email confirmations.
 
 ## 3. Functional Requirements
@@ -25,10 +24,8 @@ Friends and families organizing Secret Santa lack a simple, secure tool to:
 - FR-007: Auto-provision participant accounts immediately after draw; require password set on first login.
 - FR-008: Implement row-level security: authors see only their draws; participants see only their own match.
 - FR-009: Display match results on a dedicated page for each participant.
-- FR-010: Integrate AI gift suggestion via XHR to OpenRouter (configured in .env) with retry logic (up to 3 retries, 30 s timeout).
-- FR-011: Cache AI suggestions indefinitely; provide manual refresh button without rate limiting.
-- FR-012: Prevent authors from modifying or deleting draws after creation.
-- FR-013: Wrap all UI strings in an i18n abstraction for future localization.
+- FR-010: Prevent authors from modifying or deleting draws after creation.
+- FR-011: Wrap all UI strings in an i18n abstraction for future localization.
 
 ## 4. Product Boundaries
 
@@ -36,9 +33,12 @@ In scope:
 
 - Email/password authentication for authors and participants.
 - Draw creation and participant management.
-- AI-based gift suggestions with caching and refresh.
 - Row-level security policies in the database.
 - English UI with i18n support.
+
+Future releases (post-MVP):
+
+- AI-based gift suggestions with caching and refresh.
 
 Out of scope:
 
@@ -102,14 +102,14 @@ Out of scope:
   - Given valid credentials, when I log in, then I see my match name, email, and gift-preferences summary.
 
 - ID: US-009
-  Title: Generate AI gift suggestions
+  Title: Generate AI gift suggestions (Future Release)
   Description: As a participant, I want personalized gift suggestions based on the preference letter so that I get helpful ideas.
   Acceptance Criteria:
   - Given a valid preference letter, when I view results, then AI suggestions appear.
   - If the AI call fails after 3 retries, then I see a friendly error message.
 
 - ID: US-010
-  Title: Manual refresh of AI suggestions
+  Title: Manual refresh of AI suggestions (Future Release)
   Description: As a participant, I want to refresh my gift suggestions on demand so that I can get new ideas.
   Acceptance Criteria:
   - Given cached suggestions, when I click refresh, then a new AI call is made and results update.
@@ -141,5 +141,4 @@ Out of scope:
 
 - Every participant has exactly one distinct match (100% match rate).
 - Participants successfully log in and view results in at least 95% of attempts.
-- AI suggestions load successfully within timeout in at least 90% of calls.
 - Validation errors prevent invalid inputs in 100% of cases.
